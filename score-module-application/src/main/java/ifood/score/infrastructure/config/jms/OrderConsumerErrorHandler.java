@@ -11,7 +11,7 @@ public class OrderConsumerErrorHandler implements ErrorHandler {
 
     @Override
     public void handleError(Throwable t) {
-        log.warn("spring jms custom error handling example");
+        log.warn("Error to consume message on JMS.");
         log.error(t.getCause().getMessage());
     }
 }
