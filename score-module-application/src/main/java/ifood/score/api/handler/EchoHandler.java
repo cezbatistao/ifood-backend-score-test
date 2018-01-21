@@ -1,4 +1,4 @@
-package ifood.score;
+package ifood.score.api.handler;
 
 import reactor.core.publisher.Mono;
 

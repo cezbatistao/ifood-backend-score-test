@@ -5,7 +5,7 @@ import static ifood.score.mock.generator.RandomishPicker._int;
 import ifood.score.menu.Menu;
 import ifood.score.mock.generator.Picker;
 import ifood.score.mock.generator.menu.MenuPicker;
-import ifood.score.order.Item;
+import ifood.score.infrastructure.service.order.Item;
 public class ItemPicker implements Picker<Item> {
 
 	private static final MenuPicker MENU_PICKER = new MenuPicker();

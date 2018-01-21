@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.UUID;
 
 import ifood.score.mock.generator.Picker;
-import ifood.score.order.Item;
-import ifood.score.order.Order;
+import ifood.score.infrastructure.service.order.Item;
+import ifood.score.infrastructure.service.order.Order;
 
 public class OrderPicker implements Picker<Order> {
 

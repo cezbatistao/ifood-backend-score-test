@@ -1,0 +1,9 @@
+spring:
+  profiles:
+    active: test
+
+spring:
+  data:
+    mongodb:
+      port: 44350
+      database: test

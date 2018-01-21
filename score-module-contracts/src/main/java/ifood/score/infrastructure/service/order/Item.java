@@ -1,19 +1,16 @@
-package ifood.score.order;
+package ifood.score.infrastructure.service.order;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 import ifood.score.menu.Category;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
+@AllArgsConstructor
 @ToString
 @EqualsAndHashCode(of={"quantity", "menuUuid"})
 public class Item implements Serializable {

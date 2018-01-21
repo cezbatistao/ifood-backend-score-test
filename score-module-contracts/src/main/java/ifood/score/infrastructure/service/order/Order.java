@@ -1,19 +1,16 @@
-package ifood.score.order;
+package ifood.score.infrastructure.service.order;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
+@AllArgsConstructor
 @ToString
 @EqualsAndHashCode(of={"uuid"})
 public class Order implements Serializable {
