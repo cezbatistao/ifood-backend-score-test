@@ -6,6 +6,13 @@ jdk:
 cache:
   directories:
     - $HOME/.mvn/wrapper/
+    - '$HOME/.sonar/cache'
 
+addons:
+  sonarcloud:
+    organization: $SONAR_ORG
+    token:
+      secure: $SONAR_TOKEN
+      
 script:
-  - ./mvnw verify
+  - ./mvnw clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar
