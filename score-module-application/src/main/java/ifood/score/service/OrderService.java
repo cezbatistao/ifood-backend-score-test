@@ -1,11 +1,12 @@
 package ifood.score.service;
 
-import ifood.score.domain.repository.OrderRelevanceRepository;
 import ifood.score.domain.repository.OrderRepository;
 import ifood.score.infrastructure.service.order.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -21,10 +22,10 @@ public class OrderService {
 
     public Mono<Order> save(Order order) {
         Mono<Order> orderMono = orderRepository.save(order);
-        return orderRelevanceService.calculateRelevance(orderMono).map(r->order);
-//        return orderMono.map(o-> {
-//            this.orderRelevanceService.calculateRelevance(o);
-//            return o;
-//        });
+        return orderRelevanceService.calculateRelevance(orderMono).map(r -> order);
+    }
+
+    public Mono<Void> cancel(UUID orderUuid) {
+        return orderRepository.markCanceled(orderUuid).then(Mono.just(orderUuid)).flatMap(v->orderRelevanceService.cancel(orderUuid));
     }
 }

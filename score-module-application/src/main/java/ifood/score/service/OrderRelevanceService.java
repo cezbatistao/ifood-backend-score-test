@@ -37,6 +37,10 @@ public class OrderRelevanceService {
         });
     }
 
+    public Mono<Void> cancel(UUID orderUuid) {
+        return orderRelevanceRepository.markCanceled(orderUuid);
+    }
+
     public OrderRelevance calculateRelevance(Order order) {
         verify(order != null, "Order is required to calculateRelevance.");
         verify(order != null && order.getItems() != null && !order.getItems().isEmpty(),

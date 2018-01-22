@@ -11,7 +11,7 @@ public class OrderConsumerErrorHandler implements ErrorHandler {
 
     @Override
     public void handleError(Throwable t) {
-        log.warn("Error to consume message on JMS.");
+        log.warn("Erro ao consumir mensagem da fila JMS.");
         log.error(t.getCause().getMessage());
     }
 }

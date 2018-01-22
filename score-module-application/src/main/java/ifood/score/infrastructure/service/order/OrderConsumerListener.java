@@ -30,13 +30,13 @@ public class OrderConsumerListener {
 
     @JmsListener(destination = CHECKOUT_ORDER_QUEUE, containerFactory = "containerFactory")
     public void receiveFakeOrder(Order order) {
-        log.info("Pedido recebido {}", order);
+        log.info("Pedido recebido {}.", order);
         orderService.save(order).subscribeOn(Schedulers.single());
-        // salvar e mandar pra outra fila pra calcular a relevancia ou só o score, verificar o q é melhor, deixar aqui calculando a relevancia?
     }
 
     @JmsListener(destination = CANCEL_ORDER_QUEUE, containerFactory = "containerFactory")
     public void receiveCancelFakeOrder(UUID orderUuid) {
-        System.out.println("********************************** Received Cancel <" + orderUuid + ">");
+        log.info("Pedido com ID [{}] cancelado.", orderUuid);
+        orderService.cancel(orderUuid).subscribeOn(Schedulers.single());
     }
 }

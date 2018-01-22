@@ -6,6 +6,7 @@ import ifood.score.domain.model.RelevanceMenuItem;
 import ifood.score.domain.repository.entity.OrderRelevanceMongo;
 import ifood.score.domain.repository.entity.RelevanceCategoryMongo;
 import ifood.score.domain.repository.entity.RelevanceMenuItemMongo;
+import ifood.score.domain.repository.entity.StatusOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.stereotype.Repository;
@@ -13,21 +14,48 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 
 @Repository
 public class OrderRelevanceRepository {
 
-    private ReactiveMongoOperations reactiveMongoOperations;
+    private ReactiveMongoOperations operations;
 
     @Autowired
-    public OrderRelevanceRepository(ReactiveMongoOperations reactiveMongoOperations) {
-        this.reactiveMongoOperations = reactiveMongoOperations;
+    public OrderRelevanceRepository(ReactiveMongoOperations operations) {
+        this.operations = operations;
     }
 
     public Mono<OrderRelevance> save(OrderRelevance orderRelevance) {
-        Mono<OrderRelevanceMongo> entity = reactiveMongoOperations.save(mapper(orderRelevance));
+        Mono<OrderRelevanceMongo> entity = operations.save(mapper(orderRelevance));
         return entity.map(this::mapper);
+    }
+
+    public Flux<OrderRelevance> findAll() {
+        return operations.findAll(OrderRelevanceMongo.class).map(this::mapper);
+    }
+
+    public Flux<OrderRelevance> findAllPresents() {
+        return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderRelevanceMongo.class).map(this::mapper);
+    }
+
+    public Mono<Void> markCanceled(UUID orderUuid) {
+        return operations
+                .updateFirst(query(where("_id").is(orderUuid)), update("status", StatusOrder.CANCELED), OrderRelevanceMongo.class)
+                .map(u -> {
+                    if (u.getMatchedCount() == 0) {
+                        Mono.error(new IllegalArgumentException(format("Order with UUID [%s] don't exists.", orderUuid)));
+                    }
+
+                    return u;
+                })
+                .then();
     }
 
     private OrderRelevanceMongo mapper(OrderRelevance orderRelevance) {
@@ -50,9 +78,5 @@ public class OrderRelevanceRepository {
                 .collect(Collectors.toList());
 
         return new OrderRelevance(entity.getOrderUuid(), relevanceMenuItens, relevanceCategories);
-    }
-
-    public Flux<OrderRelevance> findAll() {
-        return reactiveMongoOperations.findAll(OrderRelevanceMongo.class).map(this::mapper);
     }
 }
