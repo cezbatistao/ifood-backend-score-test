@@ -1,5 +1,6 @@
 package ifood.score.domain.repository;
 
+import com.mongodb.client.result.UpdateResult;
 import ifood.score.domain.model.OrderRelevance;
 import ifood.score.domain.model.RelevanceCategory;
 import ifood.score.domain.model.RelevanceMenuItem;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -41,11 +43,11 @@ public class OrderRelevanceRepository {
         return operations.findAll(OrderRelevanceMongo.class).map(this::mapper);
     }
 
-    public Flux<OrderRelevance> findAllPresents() {
+    public Flux<OrderRelevance> findAllByStatusActive() {
         return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderRelevanceMongo.class).map(this::mapper);
     }
 
-    public Mono<Void> markCanceled(UUID orderUuid) {
+    public Mono<Void> markCanceledByOrderUuid(UUID orderUuid) {
         return operations
                 .updateFirst(query(where("_id").is(orderUuid)), update("status", StatusOrder.CANCELED), OrderRelevanceMongo.class)
                 .map(u -> {
@@ -56,6 +58,14 @@ public class OrderRelevanceRepository {
                     return u;
                 })
                 .then();
+    }
+
+    public Mono<Boolean> markExpiredByConfirmedByOrderUuid(UUID orderUuid) {
+        return operations
+                .updateMulti(query(where("_id").is(orderUuid)), update("status", StatusOrder.EXPIRED), OrderRelevanceMongo.class)
+                .map(u ->
+                    u.getMatchedCount() > 0
+                );
     }
 
     private OrderRelevanceMongo mapper(OrderRelevance orderRelevance) {

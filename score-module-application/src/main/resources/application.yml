@@ -20,3 +20,8 @@ spring:
         reconnect-on-exception: true
         time-between-expiration-check: -1
         use-anonymous-producers: true
+
+
+cron:
+  calculate:
+    score: 0 0/30 * * * ?

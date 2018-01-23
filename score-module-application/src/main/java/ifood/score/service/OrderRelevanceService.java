@@ -38,7 +38,11 @@ public class OrderRelevanceService {
     }
 
     public Mono<Void> cancel(UUID orderUuid) {
-        return orderRelevanceRepository.markCanceled(orderUuid);
+        return orderRelevanceRepository.markCanceledByOrderUuid(orderUuid);
+    }
+
+    public Mono<Boolean> markOrdersAsExpired(UUID orderUuid) {
+        return orderRelevanceRepository.markExpiredByConfirmedByOrderUuid(orderUuid);
     }
 
     public OrderRelevance calculateRelevance(Order order) {

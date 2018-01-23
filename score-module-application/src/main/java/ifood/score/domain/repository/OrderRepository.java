@@ -7,10 +7,12 @@ import ifood.score.infrastructure.service.order.Item;
 import ifood.score.infrastructure.service.order.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,15 +41,15 @@ public class OrderRepository {
         return operations.findAll(OrderMongo.class).map(this::mapper);
     }
 
-    public Flux<Order> findAllPresents() {
+    public Flux<Order> findAllByStatusActive() {
         return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderMongo.class).map(this::mapper);
     }
 
-    public Mono<Order> findByUuid(UUID orderUuid) {
+    public Mono<Order> findByOrderUuid(UUID orderUuid) {
         return operations.findOne(query(where("_id").is(orderUuid)), OrderMongo.class).map(this::mapper);
     }
 
-    public Mono<Void> markCanceled(UUID orderUuid) {
+    public Mono<Void> markCanceledByOrderUuid(UUID orderUuid) {
         return operations
                 .updateFirst(query(where("_id").is(orderUuid)), update("status", StatusOrder.CANCELED), OrderMongo.class)
                 .map(u -> {
@@ -57,6 +59,21 @@ public class OrderRepository {
 
                     return u;
                 })
+                .then();
+    }
+
+    public Flux<UUID> findOrderUuidByConfirmedAtLessThanEqualAndStatus(Date confirmedAt, StatusOrder statusOrder) {
+        Query query = query(where("confirmedAt").lte(confirmedAt).and("status").is(statusOrder));
+        query.fields().include("_id");
+        return operations.find(query, OrderMongo.class).map(OrderMongo::getUuid);
+    }
+
+    public Mono<Void> markExpiredByConfirmedAtLessThanEqual(Date confirmedAt) {
+        return operations
+                .updateMulti(
+                        query(where("confirmedAt").lte(confirmedAt).and("status").is(StatusOrder.ACTIVE)),
+                        update("status", StatusOrder.EXPIRED),
+                        OrderMongo.class)
                 .then();
     }
 

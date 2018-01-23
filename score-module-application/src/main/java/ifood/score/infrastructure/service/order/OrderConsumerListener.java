@@ -31,12 +31,12 @@ public class OrderConsumerListener {
     @JmsListener(destination = CHECKOUT_ORDER_QUEUE, containerFactory = "containerFactory")
     public void receiveFakeOrder(Order order) {
         log.info("Pedido recebido {}.", order);
-        orderService.save(order).subscribeOn(Schedulers.single());
+//        orderService.save(order).subscribeOn(Schedulers.single());
     }
 
     @JmsListener(destination = CANCEL_ORDER_QUEUE, containerFactory = "containerFactory")
     public void receiveCancelFakeOrder(UUID orderUuid) {
         log.info("Pedido com ID [{}] cancelado.", orderUuid);
-        orderService.cancel(orderUuid).subscribeOn(Schedulers.single());
+//        orderService.cancel(orderUuid).subscribeOn(Schedulers.single());
     }
 }
