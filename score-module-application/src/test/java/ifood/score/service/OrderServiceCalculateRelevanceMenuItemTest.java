@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.math.BigDecimal;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,26 +49,25 @@ public class OrderServiceCalculateRelevanceMenuItemTest {
 
     @Test
     public void testCalculateRelevanceWithNullMenuUuid() {
-        Item itemPizza = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapanese = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihas = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibe = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
-
-        List<Item> items = newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+        List<Item> items = createDummyItens();
 
         BigDecimal relevance = orderService.calculateRelevanceMenuItem(items, null);
 
         assertThat(relevance).isNull();
     }
 
-    @Test
-    public void testCalculateRelevanceWithMenuUuidNotExistsOnItensOrders() {
+    private List<Item> createDummyItens() {
         Item itemPizza = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
         Item itemJapanese = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
         Item itemArabicEsfihas = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
         Item itemArabicKibe = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
 
-        List<Item> items = newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+        return newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+    }
+
+    @Test
+    public void testCalculateRelevanceWithMenuUuidNotExistsOnItensOrders() {
+        List<Item> items = createDummyItens();
 
         BigDecimal relevance = orderService.calculateRelevanceMenuItem(items, UUID.randomUUID());
 
@@ -78,12 +76,7 @@ public class OrderServiceCalculateRelevanceMenuItemTest {
 
     @Test
     public void testCalculateRelevanceFromMenuItem() {
-        Item itemPizza = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapanese = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihas = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibe = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
-
-        List<Item> items = newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+        List<Item> items = createDummyItens();
 
         BigDecimal relevance = orderService.calculateRelevanceMenuItem(items, menuPizzaCheese.getUuid());
 

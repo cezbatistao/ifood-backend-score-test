@@ -1,6 +1,5 @@
 package ifood.score.service;
 
-import com.google.common.collect.Lists;
 import ifood.score.domain.model.OrderRelevance;
 import ifood.score.domain.model.RelevanceCategory;
 import ifood.score.domain.model.RelevanceMenuItem;
@@ -13,7 +12,6 @@ import ifood.score.infrastructure.service.order.Item;
 import ifood.score.infrastructure.service.order.Order;
 import ifood.score.menu.Category;
 import ifood.score.menu.Menu;
-import org.apache.commons.collections.ListUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,6 +67,25 @@ public class OrderServiceIntegrationTest {
     private Menu menuHamburger;
     private Menu menuCoke;
 
+    private Item itemPizzaCheeseOrder01;
+    private Item itemJapaneseOrder01;
+    private Item itemArabicEsfihasOrder01;
+    private Item itemArabicKibeOrder01;
+    private List<Item> itemsOrder01;
+    private Order order01;
+
+    private Item itemPizzaPortugueseOrder02;
+    private Item itemVeganOrder02;
+    private Item itemPizzaPepperoniOrder02;
+    private Item itemArabicEsfihasOrder02;
+    private Item itemPizzaCheeseOrder02;
+    private List<Item> itemsOrder02;
+    private Order order02;
+
+    private Item itemHamburgerGourmetOrder03;
+    private Item itemDietCokeOrder03;
+    private List<Item> itemsOrder03;
+
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
@@ -83,6 +100,26 @@ public class OrderServiceIntegrationTest {
         menuVegan = generateTestMenu(Category.VEGAN, new BigDecimal("3"));
         menuHamburger = generateTestMenu(Category.HAMBURGER, new BigDecimal("27.9"));
         menuCoke = generateTestMenu(Category.OTHER, new BigDecimal("4.5"));
+
+        itemPizzaCheeseOrder01 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
+        itemJapaneseOrder01 = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
+        itemArabicEsfihasOrder01 = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
+        itemArabicKibeOrder01 = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
+        itemsOrder01 = newArrayList(itemPizzaCheeseOrder01, itemJapaneseOrder01, itemArabicEsfihasOrder01, itemArabicKibeOrder01);
+        order01 = generateTestOrder(itemsOrder01);
+
+        itemPizzaPortugueseOrder02 = generateTestItem(1, menuPizzaPortuguese.getCategory(), menuPizzaPortuguese.getUuid(), menuPizzaPortuguese.getUnitPrice());
+        itemVeganOrder02 = generateTestItem(3, menuVegan.getCategory(), menuVegan.getUuid(), menuVegan.getUnitPrice());
+        itemPizzaPepperoniOrder02 = generateTestItem(1, menuPizzaPepperoni.getCategory(), menuPizzaPepperoni.getUuid(), menuPizzaPepperoni.getUnitPrice());
+        itemArabicEsfihasOrder02 = generateTestItem(3, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
+        itemPizzaCheeseOrder02 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
+        itemsOrder02 = newArrayList(itemPizzaPortugueseOrder02, itemVeganOrder02, itemPizzaPepperoniOrder02, itemArabicEsfihasOrder02, itemPizzaCheeseOrder02);
+        order02 = generateTestOrder(itemsOrder02);
+
+        itemHamburgerGourmetOrder03 = generateTestItem(1, menuHamburger.getCategory(), menuHamburger.getUuid(), menuHamburger.getUnitPrice());
+        itemDietCokeOrder03 = generateTestItem(1, menuCoke.getCategory(), menuCoke.getUuid(), menuCoke.getUnitPrice());
+
+        itemsOrder03 = newArrayList(itemHamburgerGourmetOrder03, itemDietCokeOrder03);
 
         reactiveMongoOperations.collectionExists(OrderMongo.class)
                 .flatMap(exists -> exists ? reactiveMongoOperations.dropCollection(OrderMongo.class) : Mono.just(exists))
@@ -100,57 +137,18 @@ public class OrderServiceIntegrationTest {
     @Test
     public void testSaveOrdersAndRelevances() {
         // given
-        Item itemPizzaCheeseOrder01 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapaneseOrder01 = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihasOrder01 = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibeOrder01 = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
-
-        List<Item> itemsOrder01 = newArrayList(itemPizzaCheeseOrder01, itemJapaneseOrder01, itemArabicEsfihasOrder01, itemArabicKibeOrder01);
-
-        Order order01 = generateTestOrder(itemsOrder01);
-
-        Item itemPizzaPortugueseOrder02 = generateTestItem(1, menuPizzaPortuguese.getCategory(), menuPizzaPortuguese.getUuid(), menuPizzaPortuguese.getUnitPrice());
-        Item itemVeganOrder02 = generateTestItem(3, menuVegan.getCategory(), menuVegan.getUuid(), menuVegan.getUnitPrice());
-        Item itemPizzaPepperoniOrder02 = generateTestItem(1, menuPizzaPepperoni.getCategory(), menuPizzaPepperoni.getUuid(), menuPizzaPepperoni.getUnitPrice());
-        Item itemArabicEsfihasOrder02 = generateTestItem(3, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemPizzaCheeseOrder02 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-
-        List<Item> itemsOrder02 = newArrayList(itemPizzaPortugueseOrder02, itemVeganOrder02, itemPizzaPepperoniOrder02,
-                itemArabicEsfihasOrder02, itemPizzaCheeseOrder02);
-
-        Order order02 = generateTestOrder(itemsOrder02);
-
         List<Order> ordersExpected = newArrayList(order01, order02);
 
-        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder01Expected = new RelevanceMenuItem(itemPizzaCheeseOrder01.getMenuUuid(), new BigDecimal("14.872457840"));
-        RelevanceMenuItem relevanceMenuItemJapaneseOrder01Expected = new RelevanceMenuItem(itemJapaneseOrder01.getMenuUuid(), new BigDecimal("39.684667263"));
-        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder01Expected = new RelevanceMenuItem(itemArabicEsfihasOrder01.getMenuUuid(), new BigDecimal("26.269998228"));
-        RelevanceMenuItem relevanceMenuItemArabicKibeOrder01Expected = new RelevanceMenuItem(itemArabicKibeOrder01.getMenuUuid(), new BigDecimal("15.598365377"));
-        List<RelevanceMenuItem> relevanceMenuItemsOrder01Expected = newArrayList(relevanceMenuItemPizzaCheeseOrder01Expected, relevanceMenuItemJapaneseOrder01Expected,
-                relevanceMenuItemArabicEsfihasOrder01Expected, relevanceMenuItemArabicKibeOrder01Expected);
+        RelevanceMenuItem[] relevanceMenuItemsOrder01Expected = createDummyRelevanceMenuItensForOrder01(itemPizzaCheeseOrder01,
+                itemJapaneseOrder01, itemArabicEsfihasOrder01, itemArabicKibeOrder01);
+        RelevanceCategory[] relevanceCategoriesOrder01Expected = createDummyRelevanceCategoriesForOrder01();
 
-        RelevanceCategory relevanceCategoryPizzaOrder01Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("14.872457840"));
-        RelevanceCategory relevanceCategoryJapaneseOrder01Expected = new RelevanceCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
-        RelevanceCategory relevanceCategoryArabicOrder01Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("42.013048183"));
-        List<RelevanceCategory> relevanceCategoriesOrder01Expected = newArrayList(relevanceCategoryPizzaOrder01Expected, relevanceCategoryJapaneseOrder01Expected,
-                relevanceCategoryArabicOrder01Expected);
-
-        RelevanceMenuItem relevanceMenuItemPizzaPortugueseOrder02Expected = new RelevanceMenuItem(itemPizzaPortugueseOrder02.getMenuUuid(), new BigDecimal("17.946063402"));
-        RelevanceMenuItem relevanceMenuItemVeganOrder02Expected = new RelevanceMenuItem(itemVeganOrder02.getMenuUuid(), new BigDecimal("18.287923899"));
-        RelevanceMenuItem relevanceMenuItemPizzaPepperoniOrder02Expected = new RelevanceMenuItem(itemPizzaPepperoniOrder02.getMenuUuid(), new BigDecimal("16.878989451"));
-        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder02Expected = new RelevanceMenuItem(itemArabicEsfihasOrder02.getMenuUuid(), new BigDecimal("20.851441406"));
-        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder02Expected = new RelevanceMenuItem(itemPizzaCheeseOrder02.getMenuUuid(), new BigDecimal("15.739738822"));
-        List<RelevanceMenuItem> relevanceMenuItemsOrder02Expected = newArrayList(relevanceMenuItemPizzaPortugueseOrder02Expected, relevanceMenuItemVeganOrder02Expected,
-                relevanceMenuItemPizzaPepperoniOrder02Expected, relevanceMenuItemArabicEsfihasOrder02Expected, relevanceMenuItemPizzaCheeseOrder02Expected);
-
-        RelevanceCategory relevanceCategoryPizzaOrder02Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("50.636968354"));
-        RelevanceCategory relevanceCategoryVeganOrder02Expected = new RelevanceCategory(Category.VEGAN, new BigDecimal("18.287923899"));
-        RelevanceCategory relevanceCategoryArabicOrder02Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("20.851441406"));
-        List<RelevanceCategory> relevanceCategoriesOrder02Expected = newArrayList(relevanceCategoryPizzaOrder02Expected, relevanceCategoryVeganOrder02Expected,
-                relevanceCategoryArabicOrder02Expected);
+        RelevanceMenuItem[] relevanceMenuItemsOrder02Expected = createDummyRelevanceMenuItemsForOrder02(itemPizzaPortugueseOrder02,
+                itemVeganOrder02, itemPizzaPepperoniOrder02, itemArabicEsfihasOrder02, itemPizzaCheeseOrder02);
+        RelevanceCategory[] relevanceCategoriesOrder02Expected = createDummyRelevanceCategoriesForOrder02();
 
         // when
-        ordersExpected.forEach(o -> orderService.save(o).then().block());
+        ordersExpected.forEach(o -> orderService.checkout(o).then().block());
 
         // then
         List<Order> ordersActual = orderRepository.findAllByStatusActive().collectList().block();
@@ -162,68 +160,31 @@ public class OrderServiceIntegrationTest {
 
         assertThat(orderRelevances).hasSize(ordersExpected.size());
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order01.getUuid())).findFirst().get().getRelevancesMenuItem())
-                .hasSize(relevanceMenuItemsOrder01Expected.size()).containsAll(relevanceMenuItemsOrder01Expected);
+                .hasSize(relevanceMenuItemsOrder01Expected.length)
+                .contains(relevanceMenuItemsOrder01Expected);
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order01.getUuid())).findFirst().get().getRelevancesCategory())
-                .hasSize(relevanceCategoriesOrder01Expected.size()).containsAll(relevanceCategoriesOrder01Expected);
+                .hasSize(relevanceCategoriesOrder01Expected.length)
+                .contains(relevanceCategoriesOrder01Expected);
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesMenuItem())
-                .hasSize(relevanceMenuItemsOrder02Expected.size()).containsAll(relevanceMenuItemsOrder02Expected);
+                .hasSize(relevanceMenuItemsOrder02Expected.length)
+                .contains(relevanceMenuItemsOrder02Expected);
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesCategory())
-                .hasSize(relevanceCategoriesOrder02Expected.size()).containsAll(relevanceCategoriesOrder02Expected);
+                .hasSize(relevanceCategoriesOrder02Expected.length)
+                .contains(relevanceCategoriesOrder02Expected);
     }
 
     @Test
     public void testCancelOrdersAndRelevances() {
         // given
-        Item itemPizzaCheeseOrder01 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapaneseOrder01 = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihasOrder01 = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibeOrder01 = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
+        newArrayList(order01, order02).forEach(o -> orderService.checkout(o).then().block());
 
-        List<Item> itemsOrder01 = newArrayList(itemPizzaCheeseOrder01, itemJapaneseOrder01, itemArabicEsfihasOrder01, itemArabicKibeOrder01);
+        RelevanceMenuItem[] relevanceMenuItemsOrder01Expected = createDummyRelevanceMenuItensForOrder01(itemPizzaCheeseOrder01,
+                itemJapaneseOrder01, itemArabicEsfihasOrder01, itemArabicKibeOrder01);
+        RelevanceCategory[] relevanceCategoriesOrder01Expected = createDummyRelevanceCategoriesForOrder01();
 
-        Order order01 = generateTestOrder(itemsOrder01);
-
-        Item itemPizzaPortugueseOrder02 = generateTestItem(1, menuPizzaPortuguese.getCategory(), menuPizzaPortuguese.getUuid(), menuPizzaPortuguese.getUnitPrice());
-        Item itemVeganOrder02 = generateTestItem(3, menuVegan.getCategory(), menuVegan.getUuid(), menuVegan.getUnitPrice());
-        Item itemPizzaPepperoniOrder02 = generateTestItem(1, menuPizzaPepperoni.getCategory(), menuPizzaPepperoni.getUuid(), menuPizzaPepperoni.getUnitPrice());
-        Item itemArabicEsfihasOrder02 = generateTestItem(3, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemPizzaCheeseOrder02 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-
-        List<Item> itemsOrder02 = newArrayList(itemPizzaPortugueseOrder02, itemVeganOrder02, itemPizzaPepperoniOrder02,
-                itemArabicEsfihasOrder02, itemPizzaCheeseOrder02);
-
-        Order order02 = generateTestOrder(itemsOrder02);
-
-        List<Order> orders = newArrayList(order01, order02);
-
-        orders.forEach(o -> orderService.save(o).then().block());
-
-        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder01Expected = new RelevanceMenuItem(itemPizzaCheeseOrder01.getMenuUuid(), new BigDecimal("14.872457840"));
-        RelevanceMenuItem relevanceMenuItemJapaneseOrder01Expected = new RelevanceMenuItem(itemJapaneseOrder01.getMenuUuid(), new BigDecimal("39.684667263"));
-        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder01Expected = new RelevanceMenuItem(itemArabicEsfihasOrder01.getMenuUuid(), new BigDecimal("26.269998228"));
-        RelevanceMenuItem relevanceMenuItemArabicKibeOrder01Expected = new RelevanceMenuItem(itemArabicKibeOrder01.getMenuUuid(), new BigDecimal("15.598365377"));
-        List<RelevanceMenuItem> relevanceMenuItemsOrder01Expected = newArrayList(relevanceMenuItemPizzaCheeseOrder01Expected, relevanceMenuItemJapaneseOrder01Expected,
-                relevanceMenuItemArabicEsfihasOrder01Expected, relevanceMenuItemArabicKibeOrder01Expected);
-
-        RelevanceMenuItem relevanceMenuItemPizzaPortugueseOrder02Expected = new RelevanceMenuItem(itemPizzaPortugueseOrder02.getMenuUuid(), new BigDecimal("17.946063402"));
-        RelevanceMenuItem relevanceMenuItemVeganOrder02Expected = new RelevanceMenuItem(itemVeganOrder02.getMenuUuid(), new BigDecimal("18.287923899"));
-        RelevanceMenuItem relevanceMenuItemPizzaPepperoniOrder02Expected = new RelevanceMenuItem(itemPizzaPepperoniOrder02.getMenuUuid(), new BigDecimal("16.878989451"));
-        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder02Expected = new RelevanceMenuItem(itemArabicEsfihasOrder02.getMenuUuid(), new BigDecimal("20.851441406"));
-        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder02Expected = new RelevanceMenuItem(itemPizzaCheeseOrder02.getMenuUuid(), new BigDecimal("15.739738822"));
-        List<RelevanceMenuItem> relevanceMenuItemsOrder02Expected = newArrayList(relevanceMenuItemPizzaPortugueseOrder02Expected, relevanceMenuItemVeganOrder02Expected,
-                relevanceMenuItemPizzaPepperoniOrder02Expected, relevanceMenuItemArabicEsfihasOrder02Expected, relevanceMenuItemPizzaCheeseOrder02Expected);
-
-        RelevanceCategory relevanceCategoryPizzaOrder01Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("14.872457840"));
-        RelevanceCategory relevanceCategoryJapaneseOrder01Expected = new RelevanceCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
-        RelevanceCategory relevanceCategoryArabicOrder01Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("42.013048183"));
-        List<RelevanceCategory> relevanceCategoriesOrder01Expected = newArrayList(relevanceCategoryPizzaOrder01Expected, relevanceCategoryJapaneseOrder01Expected,
-                relevanceCategoryArabicOrder01Expected);
-
-        RelevanceCategory relevanceCategoryPizzaOrder02Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("50.636968354"));
-        RelevanceCategory relevanceCategoryVeganOrder02Expected = new RelevanceCategory(Category.VEGAN, new BigDecimal("18.287923899"));
-        RelevanceCategory relevanceCategoryArabicOrder02Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("20.851441406"));
-        List<RelevanceCategory> relevanceCategoriesOrder02Expected = newArrayList(relevanceCategoryPizzaOrder02Expected, relevanceCategoryVeganOrder02Expected,
-                relevanceCategoryArabicOrder02Expected);
+        RelevanceMenuItem[] relevanceMenuItemsOrder02Expected = createDummyRelevanceMenuItemsForOrder02(itemPizzaPortugueseOrder02,
+                itemVeganOrder02, itemPizzaPepperoniOrder02, itemArabicEsfihasOrder02, itemPizzaCheeseOrder02);
+        RelevanceCategory[] relevanceCategoriesOrder02Expected = createDummyRelevanceCategoriesForOrder02();
 
         // when
         orderService.cancel(order01.getUuid()).block();
@@ -241,82 +202,44 @@ public class OrderServiceIntegrationTest {
 
         assertThat(orderRelevances.stream().anyMatch(o->o.getOrderUuid().equals(order01.getUuid()))).isFalse();
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesMenuItem())
-                .hasSize(relevanceMenuItemsOrder02Expected.size())
-                .containsAll(relevanceMenuItemsOrder02Expected)
-                .doesNotContainAnyElementsOf(relevanceMenuItemsOrder01Expected);
+                .hasSize(relevanceMenuItemsOrder02Expected.length)
+                .contains(relevanceMenuItemsOrder02Expected)
+                .doesNotContain(relevanceMenuItemsOrder01Expected);
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesCategory())
-                .hasSize(relevanceCategoriesOrder02Expected.size())
-                .containsAll(relevanceCategoriesOrder02Expected)
-                .doesNotContainAnyElementsOf(relevanceCategoriesOrder01Expected);
+                .hasSize(relevanceCategoriesOrder02Expected.length)
+                .contains(relevanceCategoriesOrder02Expected)
+                .doesNotContain(relevanceCategoriesOrder01Expected);
     }
 
     @Test
     public void testExpirationDateOrdersAndRelevances() {
         // given
-        Item itemPizzaCheeseOrder01 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapaneseOrder01 = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihasOrder01 = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibeOrder01 = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
-
-        List<Item> itemsOrder01 = newArrayList(itemPizzaCheeseOrder01, itemJapaneseOrder01, itemArabicEsfihasOrder01, itemArabicKibeOrder01);
-
-        Date now = new Date();
-
         Date confirmedAtOneMonthAgoOrder01 = Date.from(LocalDateTime.now().minusMonths(1).minusMinutes(1).atZone(ZoneId.systemDefault()).toInstant());
-        Order order01 = generateTestOrder(confirmedAtOneMonthAgoOrder01, itemsOrder01);
-
-        Item itemPizzaPortugueseOrder02 = generateTestItem(1, menuPizzaPortuguese.getCategory(), menuPizzaPortuguese.getUuid(), menuPizzaPortuguese.getUnitPrice());
-        Item itemVeganOrder02 = generateTestItem(3, menuVegan.getCategory(), menuVegan.getUuid(), menuVegan.getUnitPrice());
-        Item itemPizzaPepperoniOrder02 = generateTestItem(1, menuPizzaPepperoni.getCategory(), menuPizzaPepperoni.getUuid(), menuPizzaPepperoni.getUnitPrice());
-        Item itemArabicEsfihasOrder02 = generateTestItem(3, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemPizzaCheeseOrder02 = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-
-        List<Item> itemsOrder02 = newArrayList(itemPizzaPortugueseOrder02, itemVeganOrder02, itemPizzaPepperoniOrder02,
-                itemArabicEsfihasOrder02, itemPizzaCheeseOrder02);
+        order01 = generateTestOrder(confirmedAtOneMonthAgoOrder01, itemsOrder01);
 
         Date confirmedAtTwoMonthAgoOrder02 = Date.from(LocalDateTime.now().minusMonths(2).atZone(ZoneId.systemDefault()).toInstant());
-        Order order02 = generateTestOrder(confirmedAtTwoMonthAgoOrder02, itemsOrder02);
-
-        Item itemHamburgerGourmetOrder03 = generateTestItem(1, menuHamburger.getCategory(), menuHamburger.getUuid(), menuHamburger.getUnitPrice());
-        Item itemDietCokeOrder03 = generateTestItem(1, menuCoke.getCategory(), menuCoke.getUuid(), menuCoke.getUnitPrice());
-
-        List<Item> itemsOrder03 = newArrayList(itemHamburgerGourmetOrder03, itemDietCokeOrder03);
+        order02 = generateTestOrder(confirmedAtTwoMonthAgoOrder02, itemsOrder02);
 
         Date confirmedAtOneWeekAgoOrder03 = Date.from(LocalDateTime.now().minusWeeks(1).atZone(ZoneId.systemDefault()).toInstant());
         Order order03 = generateTestOrder(confirmedAtOneWeekAgoOrder03, itemsOrder03);
 
         List<Order> orders = newArrayList(order01, order02, order03);
 
-        orders.forEach(o -> orderService.save(o).then().block());
+        orders.forEach(o -> orderService.checkout(o).then().block());
 
-        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder01Expected = new RelevanceMenuItem(itemPizzaCheeseOrder01.getMenuUuid(), new BigDecimal("14.872457840"));
-        RelevanceMenuItem relevanceMenuItemJapaneseOrder01Expected = new RelevanceMenuItem(itemJapaneseOrder01.getMenuUuid(), new BigDecimal("39.684667263"));
-        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder01Expected = new RelevanceMenuItem(itemArabicEsfihasOrder01.getMenuUuid(), new BigDecimal("26.269998228"));
-        RelevanceMenuItem relevanceMenuItemArabicKibeOrder01Expected = new RelevanceMenuItem(itemArabicKibeOrder01.getMenuUuid(), new BigDecimal("15.598365377"));
+        RelevanceMenuItem[] relevanceMenuItemsOrder01Expected = createDummyRelevanceMenuItensForOrder01(itemPizzaCheeseOrder01,
+                itemJapaneseOrder01, itemArabicEsfihasOrder01, itemArabicKibeOrder01);
 
-        RelevanceCategory relevanceCategoryPizzaOrder01Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("14.872457840"));
-        RelevanceCategory relevanceCategoryJapaneseOrder01Expected = new RelevanceCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
-        RelevanceCategory relevanceCategoryArabicOrder01Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("42.013048183"));
+        RelevanceCategory[] relevanceCategoriesOrder01Expected = createDummyRelevanceCategoriesForOrder01();
 
-        RelevanceMenuItem relevanceMenuItemPizzaPortugueseOrder02Expected = new RelevanceMenuItem(itemPizzaPortugueseOrder02.getMenuUuid(), new BigDecimal("17.946063402"));
-        RelevanceMenuItem relevanceMenuItemVeganOrder02Expected = new RelevanceMenuItem(itemVeganOrder02.getMenuUuid(), new BigDecimal("18.287923899"));
-        RelevanceMenuItem relevanceMenuItemPizzaPepperoniOrder02Expected = new RelevanceMenuItem(itemPizzaPepperoniOrder02.getMenuUuid(), new BigDecimal("16.878989451"));
-        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder02Expected = new RelevanceMenuItem(itemArabicEsfihasOrder02.getMenuUuid(), new BigDecimal("20.851441406"));
-        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder02Expected = new RelevanceMenuItem(itemPizzaCheeseOrder02.getMenuUuid(), new BigDecimal("15.739738822"));
+        RelevanceMenuItem[] relevanceMenuItemsOrder02Expected = createDummyRelevanceMenuItemsForOrder02(itemPizzaPortugueseOrder02,
+                itemVeganOrder02, itemPizzaPepperoniOrder02, itemArabicEsfihasOrder02, itemPizzaCheeseOrder02);
 
-        RelevanceCategory relevanceCategoryPizzaOrder02Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("50.636968354"));
-        RelevanceCategory relevanceCategoryVeganOrder02Expected = new RelevanceCategory(Category.VEGAN, new BigDecimal("18.287923899"));
-        RelevanceCategory relevanceCategoryArabicOrder02Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("20.851441406"));
+        RelevanceCategory[] relevanceCategoriesOrder02Expected = createDummyRelevanceCategoriesForOrder02();
 
-        RelevanceMenuItem relevanceMenuItemHamburgerGourmetOrder03Expected = new RelevanceMenuItem(itemHamburgerGourmetOrder03.getMenuUuid(), new BigDecimal("65.616732283"));
-        RelevanceMenuItem relevanceMenuItemDietCokeOrder03Expected = new RelevanceMenuItem(itemDietCokeOrder03.getMenuUuid(), new BigDecimal("26.352313835"));
-        List<RelevanceMenuItem> relevanceMenuItemsOrder03Expected = newArrayList(relevanceMenuItemHamburgerGourmetOrder03Expected,
-                relevanceMenuItemDietCokeOrder03Expected);
+        RelevanceMenuItem[] relevanceMenuItemsOrder03Expected = createDummyRelevanceMenuItensForOrder03(itemHamburgerGourmetOrder03, itemDietCokeOrder03);
 
-        RelevanceCategory relevanceCategoryHamburgerOrder03Expected = new RelevanceCategory(Category.HAMBURGER, new BigDecimal("65.616732283"));
-        RelevanceCategory relevanceCategoryOtherOrder03Expected = new RelevanceCategory(Category.OTHER, new BigDecimal("26.352313835"));
-        List<RelevanceCategory> relevanceCategoriesOrder03Expected = newArrayList(relevanceCategoryHamburgerOrder03Expected,
-                relevanceCategoryOtherOrder03Expected);
+        RelevanceCategory[] relevanceCategoriesOrder03Expected = createDummyRelevanceCategoriesForOrder03();
 
         // when
         orderService.markOrdersAsExpired().block();
@@ -335,19 +258,68 @@ public class OrderServiceIntegrationTest {
         assertThat(orderRelevances.stream().anyMatch(o-> o.getOrderUuid().equals(order01.getUuid()) || o.getOrderUuid().equals(order02.getUuid()))).isFalse();
 
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order03.getUuid())).findFirst().get().getRelevancesMenuItem())
-                .hasSize(relevanceMenuItemsOrder03Expected.size())
-                .containsAll(relevanceMenuItemsOrder03Expected)
-                .doesNotContain(relevanceMenuItemPizzaCheeseOrder01Expected, relevanceMenuItemJapaneseOrder01Expected,
-                        relevanceMenuItemArabicEsfihasOrder01Expected, relevanceMenuItemArabicKibeOrder01Expected,
-                        relevanceMenuItemPizzaPortugueseOrder02Expected, relevanceMenuItemVeganOrder02Expected,
-                        relevanceMenuItemPizzaPepperoniOrder02Expected, relevanceMenuItemArabicEsfihasOrder02Expected,
-                        relevanceMenuItemPizzaCheeseOrder02Expected);
+                .hasSize(relevanceMenuItemsOrder03Expected.length)
+                .contains(relevanceMenuItemsOrder03Expected)
+                .doesNotContain(relevanceMenuItemsOrder01Expected)
+                .doesNotContain(relevanceMenuItemsOrder02Expected);
 
         assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order03.getUuid())).findFirst().get().getRelevancesCategory())
-                .hasSize(relevanceCategoriesOrder03Expected.size())
-                .containsAll(relevanceCategoriesOrder03Expected)
-                .doesNotContain(relevanceCategoryPizzaOrder01Expected, relevanceCategoryJapaneseOrder01Expected,
-                        relevanceCategoryArabicOrder01Expected, relevanceCategoryPizzaOrder02Expected,
-                        relevanceCategoryVeganOrder02Expected, relevanceCategoryArabicOrder02Expected);
+                .hasSize(relevanceCategoriesOrder03Expected.length)
+                .contains(relevanceCategoriesOrder03Expected)
+                .doesNotContain(relevanceCategoriesOrder01Expected)
+                .doesNotContain(relevanceCategoriesOrder02Expected);
+    }
+
+    private RelevanceMenuItem[] createDummyRelevanceMenuItensForOrder01(Item itemPizzaCheeseOrder01, Item itemJapaneseOrder01,
+                                                                            Item itemArabicEsfihasOrder01, Item itemArabicKibeOrder01) {
+        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder01Expected = new RelevanceMenuItem(itemPizzaCheeseOrder01.getMenuUuid(), new BigDecimal("14.872457840"));
+        RelevanceMenuItem relevanceMenuItemJapaneseOrder01Expected = new RelevanceMenuItem(itemJapaneseOrder01.getMenuUuid(), new BigDecimal("39.684667263"));
+        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder01Expected = new RelevanceMenuItem(itemArabicEsfihasOrder01.getMenuUuid(), new BigDecimal("26.269998228"));
+        RelevanceMenuItem relevanceMenuItemArabicKibeOrder01Expected = new RelevanceMenuItem(itemArabicKibeOrder01.getMenuUuid(), new BigDecimal("15.598365377"));
+
+        return array(relevanceMenuItemPizzaCheeseOrder01Expected, relevanceMenuItemJapaneseOrder01Expected, relevanceMenuItemArabicEsfihasOrder01Expected, relevanceMenuItemArabicKibeOrder01Expected);
+    }
+
+    private RelevanceCategory[] createDummyRelevanceCategoriesForOrder01() {
+        RelevanceCategory relevanceCategoryPizzaOrder01Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("14.872457840"));
+        RelevanceCategory relevanceCategoryJapaneseOrder01Expected = new RelevanceCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
+        RelevanceCategory relevanceCategoryArabicOrder01Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("42.013048183"));
+
+        return array(relevanceCategoryPizzaOrder01Expected, relevanceCategoryJapaneseOrder01Expected, relevanceCategoryArabicOrder01Expected);
+    }
+
+    private RelevanceMenuItem[] createDummyRelevanceMenuItemsForOrder02(Item itemPizzaPortugueseOrder02, Item itemVeganOrder02,
+                                                                        Item itemPizzaPepperoniOrder02, Item itemArabicEsfihasOrder02,
+                                                                        Item itemPizzaCheeseOrder02) {
+        RelevanceMenuItem relevanceMenuItemPizzaPortugueseOrder02Expected = new RelevanceMenuItem(itemPizzaPortugueseOrder02.getMenuUuid(), new BigDecimal("17.946063402"));
+        RelevanceMenuItem relevanceMenuItemVeganOrder02Expected = new RelevanceMenuItem(itemVeganOrder02.getMenuUuid(), new BigDecimal("18.287923899"));
+        RelevanceMenuItem relevanceMenuItemPizzaPepperoniOrder02Expected = new RelevanceMenuItem(itemPizzaPepperoniOrder02.getMenuUuid(), new BigDecimal("16.878989451"));
+        RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder02Expected = new RelevanceMenuItem(itemArabicEsfihasOrder02.getMenuUuid(), new BigDecimal("20.851441406"));
+        RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder02Expected = new RelevanceMenuItem(itemPizzaCheeseOrder02.getMenuUuid(), new BigDecimal("15.739738822"));
+
+        return array(relevanceMenuItemPizzaPortugueseOrder02Expected, relevanceMenuItemVeganOrder02Expected, relevanceMenuItemPizzaPepperoniOrder02Expected,
+                relevanceMenuItemArabicEsfihasOrder02Expected, relevanceMenuItemPizzaCheeseOrder02Expected);
+    }
+
+    private RelevanceCategory[] createDummyRelevanceCategoriesForOrder02() {
+        RelevanceCategory relevanceCategoryPizzaOrder02Expected = new RelevanceCategory(Category.PIZZA, new BigDecimal("50.636968354"));
+        RelevanceCategory relevanceCategoryVeganOrder02Expected = new RelevanceCategory(Category.VEGAN, new BigDecimal("18.287923899"));
+        RelevanceCategory relevanceCategoryArabicOrder02Expected = new RelevanceCategory(Category.ARABIC, new BigDecimal("20.851441406"));
+
+        return array(relevanceCategoryPizzaOrder02Expected, relevanceCategoryVeganOrder02Expected, relevanceCategoryArabicOrder02Expected);
+    }
+
+    private RelevanceMenuItem[] createDummyRelevanceMenuItensForOrder03(Item itemHamburgerGourmetOrder03, Item itemDietCokeOrder03) {
+        RelevanceMenuItem relevanceMenuItemHamburgerGourmetOrder03Expected = new RelevanceMenuItem(itemHamburgerGourmetOrder03.getMenuUuid(), new BigDecimal("65.616732283"));
+        RelevanceMenuItem relevanceMenuItemDietCokeOrder03Expected = new RelevanceMenuItem(itemDietCokeOrder03.getMenuUuid(), new BigDecimal("26.352313835"));
+
+        return array(relevanceMenuItemHamburgerGourmetOrder03Expected, relevanceMenuItemDietCokeOrder03Expected);
+    }
+
+    private RelevanceCategory[] createDummyRelevanceCategoriesForOrder03() {
+        RelevanceCategory relevanceCategoryHamburgerOrder03Expected = new RelevanceCategory(Category.HAMBURGER, new BigDecimal("65.616732283"));
+        RelevanceCategory relevanceCategoryOtherOrder03Expected = new RelevanceCategory(Category.OTHER, new BigDecimal("26.352313835"));
+
+        return array(relevanceCategoryHamburgerOrder03Expected, relevanceCategoryOtherOrder03Expected);
     }
 }

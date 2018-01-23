@@ -52,26 +52,25 @@ public class OrderServiceCalculateRelevanceCategoryTest {
 
     @Test
     public void testCalculateRelevanceCategoryWithCategoryNotExistsOnItensOrders() {
-        Item itemPizza = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapanese = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihas = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibe = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
-
-        List<Item> items = newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+        List<Item> items = createDummyItens();
 
         BigDecimal relevance = orderService.calculateRelevanceCategory(items, Category.BRAZILIAN);
 
         assertThat(relevance).isNull();
     }
 
-    @Test
-    public void testCalculateRelevanceCategoryWithNullCategory() {
+    private List<Item> createDummyItens() {
         Item itemPizza = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
         Item itemJapanese = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
         Item itemArabicEsfihas = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
         Item itemArabicKibe = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
 
-        List<Item> items = newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+        return newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+    }
+
+    @Test
+    public void testCalculateRelevanceCategoryWithNullCategory() {
+        List<Item> items = createDummyItens();
 
         BigDecimal relevance = orderService.calculateRelevanceCategory(items, null);
 
@@ -80,12 +79,7 @@ public class OrderServiceCalculateRelevanceCategoryTest {
 
     @Test
     public void testCalculateRelevanceCategoryWithOneItem() {
-        Item itemPizza = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapanese = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihas = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibe = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
-
-        List<Item> items = newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+        List<Item> items = createDummyItens();
 
         BigDecimal relevance = orderService.calculateRelevanceCategory(items, Category.PIZZA);
 
@@ -95,12 +89,7 @@ public class OrderServiceCalculateRelevanceCategoryTest {
 
     @Test
     public void testCalculateRelevanceCategoryWithManyItem() {
-        Item itemPizza = generateTestItem(1, menuPizzaCheese.getCategory(), menuPizzaCheese.getUuid(), menuPizzaCheese.getUnitPrice());
-        Item itemJapanese = generateTestItem(4, menuJapanese.getCategory(), menuJapanese.getUuid(), menuJapanese.getUnitPrice());
-        Item itemArabicEsfihas = generateTestItem(4, menuArabicEsfihas.getCategory(), menuArabicEsfihas.getUuid(), menuArabicEsfihas.getUnitPrice());
-        Item itemArabicKibe = generateTestItem(2, menuArabicKibe.getCategory(), menuArabicKibe.getUuid(), menuArabicKibe.getUnitPrice());
-
-        List<Item> items = newArrayList(itemPizza, itemJapanese, itemArabicEsfihas, itemArabicKibe);
+        List<Item> items = createDummyItens();
 
         BigDecimal relevance = orderService.calculateRelevanceCategory(items, Category.ARABIC);
 

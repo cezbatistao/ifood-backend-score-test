@@ -14,6 +14,10 @@
 		<module>score-module-order-generator</module>
 	</modules>
 
+	<properties>
+		<sonar.jacoco.itReportPath>${project.basedir}/../target/jacoco-it.exec</sonar.jacoco.itReportPath>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -23,23 +27,18 @@
 		</dependency>
 	</dependencies>
 
-	<properties>
-		<sonar.exclusions>ifood/score/domain/model/*.java, ifood/score/infrastructure/**/*, **/GuiceBindComposer.java</sonar.exclusions>
-	</properties>
-
-	<profiles>
-		<profile>
-			<id>sonar-coverage</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
+	<!--<profiles>-->
+		<!--<profile>-->
+			<!--<id>sonar-coverage</id>-->
+			<!--<activation>-->
+				<!--<activeByDefault>true</activeByDefault>-->
+			<!--</activation>-->
 			<build>
 				<pluginManagement>
 					<plugins>
 						<plugin>
 							<groupId>org.jacoco</groupId>
 							<artifactId>jacoco-maven-plugin</artifactId>
-							<version>0.7.8</version>
 						</plugin>
 					</plugins>
 				</pluginManagement>
@@ -49,12 +48,6 @@
 						<artifactId>jacoco-maven-plugin</artifactId>
 						<configuration>
 							<append>true</append>
-							<excludes>
-								<exclude>ifood/score/domain/model/*.class</exclude>
-								<exclude>ifood/score/infrastructure/**/*</exclude>
-								<exclude>ifood/score/menu/*</exclude>
-								<exclude>ifood/score/mock/**/*</exclude>
-							</excludes>
 						</configuration>
 						<executions>
 							<execution>
@@ -80,6 +73,6 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile>
-	</profiles>
+		<!--</profile>-->
+	<!--</profiles>-->
 </project>
