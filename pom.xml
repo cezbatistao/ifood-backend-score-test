@@ -23,6 +23,10 @@
 		</dependency>
 	</dependencies>
 
+	<properties>
+		<sonar.exclusions>ifood/score/domain/model/*.java, ifood/score/infrastructure/**/*, **/GuiceBindComposer.java</sonar.exclusions>
+	</properties>
+
 	<profiles>
 		<profile>
 			<id>sonar-coverage</id>
@@ -45,6 +49,12 @@
 						<artifactId>jacoco-maven-plugin</artifactId>
 						<configuration>
 							<append>true</append>
+							<excludes>
+								<exclude>ifood/score/domain/model/*.class</exclude>
+								<exclude>ifood/score/infrastructure/**/*</exclude>
+								<exclude>ifood/score/menu/*</exclude>
+								<exclude>ifood/score/mock/**/*</exclude>
+							</excludes>
 						</configuration>
 						<executions>
 							<execution>

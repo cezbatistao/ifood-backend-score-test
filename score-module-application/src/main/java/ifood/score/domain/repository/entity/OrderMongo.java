@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Data()
 @RequiredArgsConstructor
 @Document(collection = "order")
 public class OrderMongo implements Serializable {
@@ -36,6 +36,4 @@ public class OrderMongo implements Serializable {
     private Date confirmedAt;
     private StatusOrder status = StatusOrder.ACTIVE;
 
-    public OrderMongo() {
-    }
 }

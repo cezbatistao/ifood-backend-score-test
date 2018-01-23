@@ -1,6 +1,5 @@
 package ifood.score.domain.repository.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,8 @@ import java.util.UUID;
 @Document(collection = "orderRelevance")
 public class OrderRelevanceMongo {
 
-    @Id @NonNull
+    @Id
+    @NonNull
     private UUID orderUuid;
 
     @NonNull

@@ -1,6 +1,5 @@
 package ifood.score.infrastructure.service.order;
 
-import ifood.score.infrastructure.service.relevance.OrderRelevanceCalculateScoreScheduler;
 import ifood.score.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

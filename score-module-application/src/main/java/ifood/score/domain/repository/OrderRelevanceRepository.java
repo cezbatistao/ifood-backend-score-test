@@ -1,6 +1,5 @@
 package ifood.score.domain.repository;
 
-import com.mongodb.client.result.UpdateResult;
 import ifood.score.domain.model.OrderRelevance;
 import ifood.score.domain.model.RelevanceCategory;
 import ifood.score.domain.model.RelevanceMenuItem;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;

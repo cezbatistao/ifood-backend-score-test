@@ -47,7 +47,7 @@ public class OrderRelevanceService {
 
     public OrderRelevance calculateRelevance(Order order) {
         verify(order != null, "Order is required to calculateRelevance.");
-        verify(order != null && order.getItems() != null && !order.getItems().isEmpty(),
+        verify(order.getItems() != null && !order.getItems().isEmpty(),
                 "Order is required to calculateRelevance.");
 
         List<RelevanceMenuItem> relevanceMenuItems = newArrayList();
@@ -88,7 +88,7 @@ public class OrderRelevanceService {
         double ip = (item.getMenuUnitPrice().doubleValue() * item.getQuantity())
                 / (itens.parallelStream().mapToDouble(i -> i.getMenuUnitPrice().doubleValue() * i.getQuantity()).sum());
 
-        return new BigDecimal(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
     }
 
     protected BigDecimal calculateRelevanceCategory(List<Item> itens, Category category) {
@@ -103,7 +103,7 @@ public class OrderRelevanceService {
         double ip = (itensSupplier.get().parallel().mapToDouble(i -> i.getMenuUnitPrice().doubleValue() * i.getQuantity()).sum())
                 / itens.parallelStream().mapToDouble(i -> i.getMenuUnitPrice().doubleValue() * i.getQuantity()).sum();
 
-        return new BigDecimal(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
     }
 
     private List<ScoreMenuItem> calculateScoreMenuItens(OrderRelevance[] orders) {
