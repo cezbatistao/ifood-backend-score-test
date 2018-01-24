@@ -130,4 +130,8 @@ public class OrderRelevanceService {
                 .then()
                 .zipWith(scoreRepository.aggregateAvgCategoryUuidByStatusActive().then()).then();
     }
+
+    public Mono<OrderRelevance> findById(UUID orderUuid) {
+        return orderRelevanceRepository.findByOrderUuid(orderUuid);
+    }
 }

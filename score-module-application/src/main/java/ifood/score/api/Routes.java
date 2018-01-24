@@ -4,7 +4,6 @@ import ifood.score.api.handler.EchoHandler;
 import ifood.score.api.handler.OrderHandler;
 import ifood.score.api.handler.ScoreHandler;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -19,6 +18,8 @@ public class Routes {
     @Bean
     public RouterFunction<ServerResponse> monoRouterFunction(EchoHandler echoHandler, ScoreHandler scoreHandler, OrderHandler orderHandler) {
         return route(POST("/echo"), echoHandler::echo)
+                .andRoute(GET("/orders/{orderUuid}"), orderHandler::get)
+                .andRoute(GET("/orders/{orderUuid}/relevances"), orderHandler::getRelevances)
                 .andRoute(GET("/menu-item/score/{value}/above"), scoreHandler::menuItemAbove)
                 .andRoute(GET("/menu-item/score/{value}/below"), scoreHandler::menuItemBelow)
                 .andRoute(GET("/category/score/{value}/above"), scoreHandler::categoryAbove)

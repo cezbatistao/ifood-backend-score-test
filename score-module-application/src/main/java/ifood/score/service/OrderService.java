@@ -40,4 +40,8 @@ public class OrderService {
                 .collectList()
                 .then(orderRepository.markExpiredByConfirmedAtLessThanEqual(oneMonthAgo));
     }
+
+    public Mono<Order> findById(UUID orderUuid) {
+        return orderRepository.findByOrderUuid(orderUuid);
+    }
 }

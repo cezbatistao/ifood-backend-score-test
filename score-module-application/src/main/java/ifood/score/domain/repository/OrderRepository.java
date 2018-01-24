@@ -39,6 +39,10 @@ public class OrderRepository {
         return orderMongoMono.map(this::mapper);
     }
 
+    public Mono<Order> findByOrderUuid(UUID orderUuid) {
+        return operations.findOne(query(where("_id").is(orderUuid)), OrderMongo.class).map(this::mapper);
+    }
+
     public Flux<Order> findAllByStatusActive() {
         return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderMongo.class).map(this::mapper);
     }

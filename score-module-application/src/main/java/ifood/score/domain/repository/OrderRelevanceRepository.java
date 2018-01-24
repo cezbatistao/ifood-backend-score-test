@@ -39,6 +39,10 @@ public class OrderRelevanceRepository {
         return entity.map(this::mapper);
     }
 
+    public Mono<OrderRelevance> findByOrderUuid(UUID orderUuid) {
+        return operations.findOne(query(where("_id").is(orderUuid)), OrderRelevanceMongo.class).map(this::mapper);
+    }
+
     public Flux<OrderRelevance> findAllByStatusActive() {
         return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderRelevanceMongo.class).map(this::mapper);
     }
