@@ -107,7 +107,6 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
 
         itemHamburgerGourmetOrder03 = generateTestItem(1, menuHamburger.getCategory(), menuHamburger.getUuid(), menuHamburger.getUnitPrice());
         itemDietCokeOrder03 = generateTestItem(1, menuCoke.getCategory(), menuCoke.getUuid(), menuCoke.getUnitPrice());
-
         itemsOrder03 = newArrayList(itemHamburgerGourmetOrder03, itemDietCokeOrder03);
 
         reactiveMongoOperations.collectionExists(OrderMongo.class)

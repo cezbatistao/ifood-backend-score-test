@@ -5,6 +5,7 @@ import ifood.score.infrastructure.service.order.Order;
 import ifood.score.service.OrderRelevanceService;
 import ifood.score.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -12,6 +13,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 
 @Component
 public class OrderHandler {
@@ -33,7 +36,7 @@ public class OrderHandler {
                     .body(Mono.just(String.format("Path parâmetro orderUuid inválido [%s].", value)), String.class);
         }
 
-        return ServerResponse.ok().body(orderService.findById(orderUuid), Order.class);
+        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(orderService.findById(orderUuid), Order.class);
     }
 
     public Mono<ServerResponse> getRelevances(ServerRequest request) {
@@ -44,7 +47,7 @@ public class OrderHandler {
                     .body(Mono.just(String.format("Path parâmetro orderUuid inválido [%s].", value)), String.class);
         }
 
-        return ServerResponse.ok().body(orderRelevanceService.findById(orderUuid), OrderRelevance.class);
+        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(orderRelevanceService.findById(orderUuid), OrderRelevance.class);
     }
 
     protected UUID extractOrderUuidParam(String value) {
