@@ -22,6 +22,14 @@ spring:
         use-anonymous-producers: true
 
 
-cron:
-  calculate:
-    score: 0 0/30 * * * ?
+#cron:
+#  calculate:
+#    score: 0 0/1 * * * ?
+#  check:
+#    orders:
+#      expired: 0 0/1 * * * ?
+
+spring:
+  data:
+    mongodb:
+      database: dev

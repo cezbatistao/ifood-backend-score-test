@@ -15,7 +15,7 @@
 	</modules>
 
 	<properties>
-		<sonar.exclusions>**/entity/*, **/domain/model/*, **/infrastructure/config/**/*, **/infrastructure/service/order/OrderCheckoutMock.*</sonar.exclusions>
+		<sonar.exclusions>**/entity/*, **/domain/model/*, **/infrastructure/config/**/*, **/infrastructure/config/**/**/*, **/infrastructure/service/order/OrderCheckoutMock.*</sonar.exclusions>
 	</properties>
 
 	<dependencies>

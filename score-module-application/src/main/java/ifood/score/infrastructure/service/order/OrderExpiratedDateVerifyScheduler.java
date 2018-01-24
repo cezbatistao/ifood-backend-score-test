@@ -26,6 +26,6 @@ public class OrderExpiratedDateVerifyScheduler {
     @Scheduled(cron = "${cron.check.orders.expired:0 0/20 * * * ?}")
     public void checkOrdersExpired() {
         log.info("Procurando Pedidos com data de confirmação com mais de um mês para marcar como EXPIRADO.");
-        Mono.just(orderService.markOrdersAsExpired()).subscribeOn(Schedulers.single());
+        Mono.just(orderService.markOrdersAsExpired()).subscribe();
     }
 }

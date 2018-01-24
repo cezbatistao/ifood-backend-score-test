@@ -2,7 +2,6 @@ package ifood.score.domain.repository.entity;
 
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Setter
@@ -13,6 +12,6 @@ import java.util.UUID;
 public class RelevanceMenuItemMongo {
 
     private UUID menuUuid;
-    private BigDecimal relevance;
+    private Double relevance;
 
 }

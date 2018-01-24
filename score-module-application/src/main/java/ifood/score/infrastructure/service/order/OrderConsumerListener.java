@@ -30,12 +30,12 @@ public class OrderConsumerListener {
     @JmsListener(destination = CHECKOUT_ORDER_QUEUE, containerFactory = "containerFactory")
     public void receiveOrderToCheckout(Order order) {
         log.info("Pedido recebido {}.", order);
-        orderService.checkout(order).subscribeOn(Schedulers.single());
+        orderService.checkout(order).subscribe();
     }
 
     @JmsListener(destination = CANCEL_ORDER_QUEUE, containerFactory = "containerFactory")
     public void receiveCancelOrder(UUID orderUuid) {
         log.info("Pedido com ID [{}] cancelado.", orderUuid);
-        orderService.cancel(orderUuid).subscribeOn(Schedulers.single());
+        orderService.cancel(orderUuid).subscribe();
     }
 }

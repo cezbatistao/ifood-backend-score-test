@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -16,7 +15,7 @@ public class ItemMongo implements Serializable {
 
     private Integer quantity;
     private UUID menuUuid;
-    private BigDecimal menuUnitPrice;
+    private Double menuUnitPrice;
     private Category menuCategory;
 
     public ItemMongo() {

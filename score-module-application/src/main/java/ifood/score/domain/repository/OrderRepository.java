@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -79,7 +80,7 @@ public class OrderRepository {
 
     private OrderMongo mapper(Order order) {
         List<ItemMongo> itensMongo = order.getItems().stream()
-                .map(i -> new ItemMongo(i.getQuantity(), i.getMenuUuid(), i.getMenuUnitPrice(), i.getMenuCategory()))
+                .map(i -> new ItemMongo(i.getQuantity(), i.getMenuUuid(), i.getMenuUnitPrice().doubleValue(), i.getMenuCategory()))
                 .collect(Collectors.toList());
 
         OrderMongo orderMongo = new OrderMongo(order.getUuid(), order.getCustomerUuid(), order.getRestaurantUuid(),
@@ -91,7 +92,7 @@ public class OrderRepository {
 
     private Order mapper(OrderMongo orderMongo) {
         List<Item> itens = orderMongo.getItems().stream()
-                .map(i -> new Item(i.getQuantity(), i.getMenuUuid(), i.getMenuUnitPrice(), i.getMenuCategory()))
+                .map(i -> new Item(i.getQuantity(), i.getMenuUuid(), BigDecimal.valueOf(i.getMenuUnitPrice()), i.getMenuCategory()))
                 .collect(Collectors.toList());
 
         return new Order(orderMongo.getUuid(), orderMongo.getCustomerUuid(), orderMongo.getRestaurantUuid(),
