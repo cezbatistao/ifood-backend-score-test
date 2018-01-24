@@ -9,6 +9,10 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 class ScoreFactory {
+
+    private ScoreFactory() {
+    }
+
     public static Score getScore(Object key, BigDecimal score){
         if(key instanceof Category) {
             return new ScoreCategory((Category) key, score);

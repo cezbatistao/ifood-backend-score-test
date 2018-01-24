@@ -14,9 +14,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Verify.verify;
@@ -51,65 +50,67 @@ public class OrderRelevanceService {
         return orderRelevanceRepository.markExpiredByConfirmedByOrderUuid(orderUuid);
     }
 
-    public OrderRelevance calculateRelevance(Order order) {
+    protected OrderRelevance calculateRelevance(Order order) {
         verify(order != null, "Order is required to calculateRelevance.");
         verify(order.getItems() != null && !order.getItems().isEmpty(),
                 "Order is required to calculateRelevance.");
 
-        List<RelevanceMenuItem> relevanceMenuItems = newArrayList();
-        order.getItems().stream().map(Item::getMenuUuid).forEach(menuUiid -> {
-            BigDecimal relevance = calculateRelevanceMenuItem(order.getItems(), menuUiid);
-            RelevanceMenuItem relevanceMenuItem = new RelevanceMenuItem(menuUiid, relevance);
-            relevanceMenuItems.add(relevanceMenuItem);
-        });
-
-        List<RelevanceCategory> relevanceCategories = newArrayList();
-        order.getItems().stream().map(Item::getMenuCategory).distinct().forEach(category -> {
-            BigDecimal relevance = calculateRelevanceCategory(order.getItems(), category);
-            RelevanceCategory relevanceCategory = new RelevanceCategory(category, relevance);
-            relevanceCategories.add(relevanceCategory);
-        });
+        List<RelevanceMenuItem> relevanceMenuItems = calculateRelevanceMenuItem(order.getItems());
+        List<RelevanceCategory> relevanceCategories = calculateRelevanceCategory(order.getItems());
 
         return new OrderRelevance(order.getUuid(), relevanceMenuItems, relevanceCategories);
     }
 
-    public Account calculateScore(List<OrderRelevance> orderRelevances) {
+    protected List<RelevanceMenuItem> calculateRelevanceMenuItem(List<Item> itens) {
+        Map<UUID, List<Item>> menuUuidCollected = itens.stream().collect(groupingBy(Item::getMenuUuid));
+        int sumOfQuantities = itens.stream().mapToInt(Item::getQuantity).sum();
+        double sumOfQuantityMultipliedUnitPrice = itens.stream().mapToDouble(it -> it.getQuantity() * it.getMenuUnitPrice().doubleValue()).sum();
+
+        List<RelevanceMenuItem> relevancesMenuItem = newArrayList();
+        menuUuidCollected.forEach((k, i) -> {
+            Item item = itens.stream().filter(it -> it.getMenuUuid().equals(k)).findFirst().get();
+
+            int quantityOfGroup = i.stream().mapToInt(Item::getQuantity).sum();
+
+            double iq = (double) quantityOfGroup / sumOfQuantities;
+            double ip = (item.getMenuUnitPrice().doubleValue() * item.getQuantity()) / sumOfQuantityMultipliedUnitPrice;
+
+            RelevanceMenuItem relevanceMenuItem = new RelevanceMenuItem(k, BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP));
+            relevancesMenuItem.add(relevanceMenuItem);
+        });
+
+        return relevancesMenuItem;
+    }
+
+    protected List<RelevanceCategory> calculateRelevanceCategory(List<Item> itens) {
+        Map<Category, List<Item>> menuUuidCollected = itens.stream().collect(groupingBy(Item::getMenuCategory));
+        int sumOfQuantities = itens.stream().mapToInt(Item::getQuantity).sum();
+        double sumOfQuantityMultipliedUnitPrice = itens.stream().mapToDouble(it -> it.getQuantity() * it.getMenuUnitPrice().doubleValue()).sum();
+
+        List<RelevanceCategory> relevanceCategories = newArrayList();
+        menuUuidCollected.forEach((k, i) -> {
+            List<Item> categories = itens.parallelStream().filter(it -> it.getMenuCategory().equals(k)).collect(Collectors.toList());
+
+            double quantityOfGroup = categories.stream().mapToDouble(Item::getQuantity).sum();
+            double quantityMultipliedUnitPriceOfGroup = i.stream().mapToDouble(it -> it.getQuantity() * it.getMenuUnitPrice().doubleValue()).sum();
+
+            double iq = quantityOfGroup / sumOfQuantities;
+            double ip = quantityMultipliedUnitPriceOfGroup / sumOfQuantityMultipliedUnitPrice;
+
+            RelevanceCategory relevanceCategory = new RelevanceCategory(k, BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP));
+            relevanceCategories.add(relevanceCategory);
+        });
+
+        return relevanceCategories;
+    }
+
+    protected Account calculateScore(List<OrderRelevance> orderRelevances) {
         List<ScoreMenuItem> scoreMenuItems = (List<ScoreMenuItem>) calculateAverageOfRelevance(orderRelevances.stream()
                 .flatMap(r -> r.getRelevancesMenuItem().stream()));
         List<ScoreCategory> scoreCategories = (List<ScoreCategory>) calculateAverageOfRelevance(orderRelevances.stream()
                 .flatMap(r -> r.getRelevancesCategory().stream()));
 
         return new Account(scoreMenuItems, scoreCategories);
-    }
-
-    protected BigDecimal calculateRelevanceMenuItem(List<Item> itens, UUID menuUuid) {
-        Optional<Item> itemOptional = itens.parallelStream().filter(i -> i.getMenuUuid().equals(menuUuid)).findFirst();
-        if (!itemOptional.isPresent()) {
-            return null;
-        }
-
-        Item item = itemOptional.get();
-
-        double iq = (double) item.getQuantity() / itens.parallelStream().mapToInt(Item::getQuantity).sum();
-        double ip = (item.getMenuUnitPrice().doubleValue() * item.getQuantity())
-                / (itens.parallelStream().mapToDouble(i -> i.getMenuUnitPrice().doubleValue() * i.getQuantity()).sum());
-
-        return BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
-    }
-
-    protected BigDecimal calculateRelevanceCategory(List<Item> itens, Category category) {
-        Supplier<Stream<Item>> itensSupplier = () -> itens.parallelStream().filter(i -> i.getMenuCategory().equals(category));
-
-        Optional<Item> itemOptional = itensSupplier.get().findAny();
-        if (!itemOptional.isPresent()) {
-            return null;
-        }
-
-        double iq = (double) itensSupplier.get().parallel().mapToInt(Item::getQuantity).sum() / itens.parallelStream().mapToInt(Item::getQuantity).sum();
-        double ip = (itensSupplier.get().parallel().mapToDouble(i -> i.getMenuUnitPrice().doubleValue() * i.getQuantity()).sum())
-                / itens.parallelStream().mapToDouble(i -> i.getMenuUnitPrice().doubleValue() * i.getQuantity()).sum();
-
-        return BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
     }
 
     private List<? extends Score> calculateAverageOfRelevance(Stream<Relevance> relevanceCategoryStream) {

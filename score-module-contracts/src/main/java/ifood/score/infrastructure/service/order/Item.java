@@ -1,11 +1,11 @@
 package ifood.score.infrastructure.service.order;
 
+import ifood.score.menu.Category;
+import lombok.*;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.UUID;
-
-import ifood.score.menu.Category;
-import lombok.*;
 
 @Getter
 @Setter
