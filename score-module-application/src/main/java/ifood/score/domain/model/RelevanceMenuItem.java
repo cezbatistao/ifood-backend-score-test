@@ -8,6 +8,7 @@ import java.util.UUID;
 
 @Getter
 @RequiredArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @ToString
 @EqualsAndHashCode
 public class RelevanceMenuItem implements Relevance<UUID>, Serializable {

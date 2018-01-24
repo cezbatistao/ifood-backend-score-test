@@ -7,15 +7,14 @@ import ifood.score.domain.repository.entity.OrderRelevanceMongo;
 import ifood.score.domain.repository.entity.RelevanceCategoryMongo;
 import ifood.score.domain.repository.entity.RelevanceMenuItemMongo;
 import ifood.score.domain.repository.entity.StatusOrder;
-import ifood.score.menu.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,10 +37,6 @@ public class OrderRelevanceRepository {
     public Mono<OrderRelevance> save(OrderRelevance orderRelevance) {
         Mono<OrderRelevanceMongo> entity = operations.save(mapper(orderRelevance));
         return entity.map(this::mapper);
-    }
-
-    public Flux<OrderRelevance> findAll() {
-        return operations.findAll(OrderRelevanceMongo.class).map(this::mapper);
     }
 
     public Flux<OrderRelevance> findAllByStatusActive() {
@@ -69,35 +64,6 @@ public class OrderRelevanceRepository {
                 );
     }
 
-    public Mono<Long> countByStatusActive() {
-        return operations.count(query(where("status").is(StatusOrder.ACTIVE)), Long.class);
-    }
-
-    public Flux<UUID> getDistinctRelevanceMenuItemUuidByStatusActive() {
-        Query query = query(where("status").is(StatusOrder.ACTIVE));
-        query.fields().include("relevancesMenuItem.menuUuid").exclude("_id");
-
-        return operations
-                .find(query, OrderRelevanceMongo.class)
-                .flatMap(o -> Flux.fromIterable(o.getRelevancesMenuItem().stream().map(RelevanceMenuItemMongo::getMenuUuid).distinct().collect(Collectors.toList())));
-    }
-
-    public Flux<Category> getDistinctRelevanceCategoryUuidByStatusActive() {
-        Query query = query(where("status").is(StatusOrder.ACTIVE));
-        query.fields().include("relevancesCategory.category").exclude("_id");
-        return operations
-                .find(query, OrderRelevanceMongo.class)
-                .flatMap(o -> Flux.fromIterable(o.getRelevancesCategory().stream().map(RelevanceCategoryMongo::getCategory).distinct().collect(Collectors.toList())));
-    }
-
-    public Flux<OrderRelevance> findAllByMenuItemUuidAndStatusActive(UUID menuItemUuid) {
-        return operations.find(query(where("status").is(StatusOrder.ACTIVE).and("relevancesMenuItem.menuUuid").is(menuItemUuid)), OrderRelevanceMongo.class).map(this::mapper);
-    }
-
-    public Flux<OrderRelevance> findallByCategoryAndStatusActive(Category category) {
-        return operations.find(query(where("status").is(StatusOrder.ACTIVE).and("relevancesCategory.category").is(category)), OrderRelevanceMongo.class).map(this::mapper);
-    }
-
     private OrderRelevanceMongo mapper(OrderRelevance orderRelevance) {
         List<RelevanceMenuItemMongo> relevanceMenuItensMongo = orderRelevance.getRelevancesMenuItem().stream()
                 .map(r -> new RelevanceMenuItemMongo(r.getMenuUuid(), r.getRelevance().doubleValue()))
@@ -111,10 +77,10 @@ public class OrderRelevanceRepository {
 
     private OrderRelevance mapper(OrderRelevanceMongo entity) {
         List<RelevanceMenuItem> relevanceMenuItens = entity.getRelevancesMenuItem().stream()
-                .map(r -> new RelevanceMenuItem(r.getMenuUuid(), BigDecimal.valueOf(r.getRelevance()).setScale(9)))
+                .map(r -> new RelevanceMenuItem(r.getMenuUuid(), BigDecimal.valueOf(r.getRelevance()).setScale(9, RoundingMode.HALF_UP)))
                 .collect(Collectors.toList());
         List<RelevanceCategory> relevanceCategories = entity.getRelevancesCategory().stream()
-                .map(r -> new RelevanceCategory(r.getCategory(), BigDecimal.valueOf(r.getRelevance()).setScale(9)))
+                .map(r -> new RelevanceCategory(r.getCategory(), BigDecimal.valueOf(r.getRelevance()).setScale(9, RoundingMode.HALF_UP)))
                 .collect(Collectors.toList());
 
         return new OrderRelevance(entity.getOrderUuid(), relevanceMenuItens, relevanceCategories);

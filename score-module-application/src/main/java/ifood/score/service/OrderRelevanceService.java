@@ -8,15 +8,15 @@ import ifood.score.infrastructure.service.order.Order;
 import ifood.score.menu.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Verify.verify;
@@ -112,30 +112,6 @@ public class OrderRelevanceService {
         return BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
     }
 
-    private List<ScoreMenuItem> calculateScoreMenuItens(List<RelevanceMenuItem> relevancesMenuItem) {
-        Map<UUID, Double> groupByMenuItem = relevancesMenuItem.stream()
-                .collect(groupingBy(RelevanceMenuItem::getMenuUuid, averagingDouble(r -> r.getRelevance().doubleValue())));
-
-        List<ScoreMenuItem> scoreMenuItems = newArrayList();
-        groupByMenuItem.forEach((k, v) -> {
-            ScoreMenuItem scoreMenuItem = new ScoreMenuItem(k, new BigDecimal(v).setScale(9, RoundingMode.HALF_UP));
-            scoreMenuItems.add(scoreMenuItem);
-        });
-        return scoreMenuItems;
-    }
-
-    private List<ScoreCategory> calculateScoreCategories(List<RelevanceCategory> relevanceCategories) {
-        Map<Category, Double> groupByCategory = relevanceCategories.stream()
-                .collect(groupingBy(RelevanceCategory::getCategory, averagingDouble(r -> r.getRelevance().doubleValue())));
-
-        List<ScoreCategory> scoreCategories = newArrayList();
-        groupByCategory.forEach((k, v) -> {
-            ScoreCategory scoreCategory = new ScoreCategory(k, new BigDecimal(v).setScale(9, RoundingMode.HALF_UP));
-            scoreCategories.add(scoreCategory);
-        });
-        return scoreCategories;
-    }
-
     private List<? extends Score> calculateAverageOfRelevance(Stream<Relevance> relevanceCategoryStream) {
         Map<Object, Double> groupByKey = relevanceCategoryStream
                 .collect(groupingBy(Relevance::getKey, averagingDouble(r -> r.getRelevance().doubleValue())));
@@ -150,29 +126,8 @@ public class OrderRelevanceService {
     }
 
     public Mono<Void> calculateScore() {
-        return orderRelevanceRepository
-                .findAllByStatusActive()
-                .collectList()
-                .map(this::calculateScore)
-                .flatMap(account-> scoreRepository.saveAllScoreMenuItem(account.getScoreMenuItems())
-                        .then(scoreRepository.saveAllCategory(account.getScoreCategories()).then()));
-//        return orderRelevanceRepository.getDistinctRelevanceMenuItemUuidByStatusActive()
-//                .flatMap(u -> orderRelevanceRepository.findAllByMenuItemUuidAndStatusActive(u))
-//                .collectList()
-//                .flatMapMany(orderRelevances -> {
-//                    return Flux.fromIterable(orderRelevances.stream().map(OrderRelevance::getRelevancesMenuItem).distinct().flatMap(List::stream).collect(Collectors.toList()));
-//                })
-//                .collectList()
-//                .flatMapMany(x-> {
-//                    return Flux.just(this.calculateScoreMenuItens(x));
-//                })
-//                .flatMap(scoreMenuItems -> scoreRepository.saveAllScoreMenuItem(scoreMenuItems))
-//                .thenMany(orderRelevanceRepository.getDistinctRelevanceCategoryUuidByStatusActive())
-//                .flatMap(c-> orderRelevanceRepository.findallByCategoryAndStatusActive(c))
-//                .collectList()
-//                .flatMapMany(orderRelevances -> Flux.fromIterable(orderRelevances.stream().map(OrderRelevance::getRelevancesCategory).collect(Collectors.toList())))
-//                .map(this::calculateScoreCategories)
-//                .flatMap(scoreCategories -> scoreRepository.saveAllCategory(scoreCategories))
-//                .then();
+        return scoreRepository.aggregateAvgMenuItemUuidByStatusActive()
+                .then()
+                .zipWith(scoreRepository.aggregateAvgCategoryUuidByStatusActive().then()).then();
     }
 }

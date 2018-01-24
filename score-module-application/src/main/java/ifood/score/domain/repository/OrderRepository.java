@@ -13,6 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -38,16 +39,8 @@ public class OrderRepository {
         return orderMongoMono.map(this::mapper);
     }
 
-    public Flux<Order> findAll() {
-        return operations.findAll(OrderMongo.class).map(this::mapper);
-    }
-
     public Flux<Order> findAllByStatusActive() {
         return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderMongo.class).map(this::mapper);
-    }
-
-    public Mono<Order> findByOrderUuid(UUID orderUuid) {
-        return operations.findOne(query(where("_id").is(orderUuid)), OrderMongo.class).map(this::mapper);
     }
 
     public Mono<Void> markCanceledByOrderUuid(UUID orderUuid) {
@@ -92,7 +85,7 @@ public class OrderRepository {
 
     private Order mapper(OrderMongo orderMongo) {
         List<Item> itens = orderMongo.getItems().stream()
-                .map(i -> new Item(i.getQuantity(), i.getMenuUuid(), BigDecimal.valueOf(i.getMenuUnitPrice()), i.getMenuCategory()))
+                .map(i -> new Item(i.getQuantity(), i.getMenuUuid(), BigDecimal.valueOf(i.getMenuUnitPrice()).setScale(9, RoundingMode.HALF_UP), i.getMenuCategory()))
                 .collect(Collectors.toList());
 
         return new Order(orderMongo.getUuid(), orderMongo.getCustomerUuid(), orderMongo.getRestaurantUuid(),

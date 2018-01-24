@@ -23,7 +23,7 @@ public class OrderRelevanceCalculateScoreScheduler {
     }
 
     @Scheduled(cron = "${cron.calculate.score:0 0/30 * * * ?}")
-    public void checkoutFakeOrder() {
+    public void calculateAllScore() {
         log.info("Gerando os Scores de Itens de Menu e Categorias.");
         orderRelevanceService.calculateScore().subscribe();
     }

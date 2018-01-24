@@ -5,8 +5,8 @@ import ifood.score.domain.repository.OrderRelevanceRepository;
 import ifood.score.domain.repository.ScoreRepository;
 import ifood.score.domain.repository.entity.OrderMongo;
 import ifood.score.domain.repository.entity.OrderRelevanceMongo;
-import ifood.score.infrastructure.service.order.Item;
-import ifood.score.infrastructure.service.order.Order;
+import ifood.score.domain.repository.entity.ScoreCategoryMongo;
+import ifood.score.domain.repository.entity.ScoreMenuItemMongo;
 import ifood.score.menu.Category;
 import ifood.score.menu.Menu;
 import ifood.score.support.AbstractIntegrationTest;
@@ -24,7 +24,6 @@ import java.util.UUID;
 import static com.google.common.collect.Lists.newArrayList;
 import static ifood.score.support.GenerateTestData.generateTestMenu;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.util.Arrays.array;
 
 public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTest {
 
@@ -37,6 +36,11 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
     private Menu menuVegan;
     private Menu menuHamburger;
     private Menu menuCoke;
+
+    private OrderRelevance order01Relevance;
+    private OrderRelevance order02Relevance;
+    private OrderRelevance order03Relevance;
+    private OrderRelevance order04Relevance;
 
     @Autowired
     private OrderRelevanceService orderRelevanceService;
@@ -64,6 +68,18 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
                 .then()
                 .block();
 
+        reactiveMongoOperations.collectionExists(ScoreMenuItemMongo.class)
+                .flatMap(exists -> exists ? reactiveMongoOperations.dropCollection(ScoreMenuItemMongo.class) : Mono.just(exists))
+                .flatMap(o -> reactiveMongoOperations.createCollection(ScoreMenuItemMongo.class, CollectionOptions.empty()))
+                .then()
+                .block();
+
+        reactiveMongoOperations.collectionExists(ScoreCategoryMongo.class)
+                .flatMap(exists -> exists ? reactiveMongoOperations.dropCollection(ScoreCategoryMongo.class) : Mono.just(exists))
+                .flatMap(o -> reactiveMongoOperations.createCollection(ScoreCategoryMongo.class, CollectionOptions.empty()))
+                .then()
+                .block();
+
         menuPizzaCheese = generateTestMenu(Category.PIZZA, new BigDecimal("20"));
         menuPizzaPepperoni = generateTestMenu(Category.PIZZA, new BigDecimal("23"));
         menuPizzaPortuguese = generateTestMenu(Category.PIZZA, new BigDecimal("26"));
@@ -83,7 +99,7 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
         RelevanceCategory relevanceCategoryJapaneseOrder01 = new RelevanceCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
         RelevanceCategory relevanceCategoryArabicOrder01 = new RelevanceCategory(Category.ARABIC, new BigDecimal("42.013048183"));
 
-        OrderRelevance order01Relevance = new OrderRelevance(
+        order01Relevance = new OrderRelevance(
                 UUID.randomUUID(),
                 newArrayList(relevanceMenuItemPizzaCheeseOrder01, relevanceMenuItemJapaneseOrder01, relevanceMenuItemArabicEsfihasOrder01,
                         relevanceMenuItemArabicKibeOrder01),
@@ -100,13 +116,12 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
         RelevanceCategory relevanceCategoryVeganOrder02 = new RelevanceCategory(Category.VEGAN, new BigDecimal("18.287923899"));
         RelevanceCategory relevanceCategoryArabicOrder02 = new RelevanceCategory(Category.ARABIC, new BigDecimal("20.851441406"));
 
-        OrderRelevance order02Relevance = new OrderRelevance(
+        order02Relevance = new OrderRelevance(
                 UUID.randomUUID(),
                 newArrayList(relevanceMenuItemPizzaPortugueseOrder02, relevanceMenuItemVeganOrder02, relevanceMenuItemPizzaPepperoniOrder02,
                         relevanceMenuItemArabicEsfihasOrder02, relevanceMenuItemPizzaCheeseOrder02),
                 newArrayList(relevanceCategoryPizzaOrder02, relevanceCategoryVeganOrder02, relevanceCategoryArabicOrder02));
         orderRelevanceRepository.save(order02Relevance).block();
-//        orderRelevanceRepository.markCanceledByOrderUuid(order02Relevance.getOrderUuid()).block();
 
         RelevanceMenuItem relevanceMenuItemHamburgerGourmetOrder03 = new RelevanceMenuItem(menuHamburger.getUuid(), new BigDecimal("65.616732283"));
         RelevanceMenuItem relevanceMenuItemDietCokeOrder03 = new RelevanceMenuItem(menuCoke.getUuid(), new BigDecimal("26.352313835"));
@@ -114,7 +129,7 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
         RelevanceCategory relevanceCategoryHamburgerOrder03 = new RelevanceCategory(Category.HAMBURGER, new BigDecimal("65.616732283"));
         RelevanceCategory relevanceCategoryOtherOrder03 = new RelevanceCategory(Category.OTHER, new BigDecimal("26.352313835"));
 
-        OrderRelevance order03Relevance = new OrderRelevance(
+        order03Relevance = new OrderRelevance(
                 UUID.randomUUID(),
                 newArrayList(relevanceMenuItemHamburgerGourmetOrder03, relevanceMenuItemDietCokeOrder03),
                 newArrayList(relevanceCategoryHamburgerOrder03, relevanceCategoryOtherOrder03));
@@ -124,16 +139,15 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
 
         RelevanceCategory relevanceCategoryPizzaOrder04 = new RelevanceCategory(Category.PIZZA, new BigDecimal("100.000000000"));
 
-        OrderRelevance order04Relevance = new OrderRelevance(
+        order04Relevance = new OrderRelevance(
                 UUID.randomUUID(),
                 newArrayList(relevanceMenuItemPizzaPortugueseOrder04),
                 newArrayList(relevanceCategoryPizzaOrder04));
         orderRelevanceRepository.save(order04Relevance).block();
-//        orderRelevanceRepository.markCanceledByOrderUuid(order04Relevance.getOrderUuid()).block();
     }
 
     @Test
-    public void testCalculateScoreOnlyOrdersActiveds() {
+    public void testCalculateScore() {
         ScoreMenuItem scoreMenuItemPizzaCheeseExpected = new ScoreMenuItem(menuPizzaCheese.getUuid(), new BigDecimal("15.306098331"));
         ScoreMenuItem scoreMenuItemJapaneseExpected = new ScoreMenuItem(menuJapanese.getUuid(), new BigDecimal("39.684667263"));
         ScoreMenuItem scoreMenuItemArabicEsfihasExpected = new ScoreMenuItem(menuArabicEsfihas.getUuid(), new BigDecimal("23.560719817"));
@@ -160,6 +174,42 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
         scoreCategoriesListExpected.sort((s1, s2) -> s1.getCategory().compareTo(s2.getCategory()));
         ScoreCategory[] scoreCategoriesExpected = scoreCategoriesListExpected.toArray(new ScoreCategory[scoreCategoriesListExpected.size()]);
 
+        orderRelevanceService.calculateScore().block();
+
+        List<ScoreMenuItem> scoreMenuItensActual = scoreRepository.findAllScoreMenuItem().collectList().block();
+        scoreMenuItensActual.sort((s1, s2) -> s1.getMenuUuid().compareTo(s2.getMenuUuid()));
+        List<ScoreCategory> scoreCategoryActual = scoreRepository.findAllScoreCategory().collectList().block();
+        scoreCategoryActual.sort((s1, s2) -> s1.getCategory().compareTo(s2.getCategory()));
+
+        assertThat(scoreMenuItensActual).hasSize(scoreMenuItensExpected.length).contains(scoreMenuItensExpected);
+        assertThat(scoreCategoryActual).hasSize(scoreCategoriesExpected.length).contains(scoreCategoriesExpected);
+    }
+
+    @Test
+    public void testCalculateScoreOnlyOrdersActiveds() {
+        orderRelevanceRepository.markCanceledByOrderUuid(order02Relevance.getOrderUuid()).block();
+        orderRelevanceRepository.markExpiredByConfirmedByOrderUuid(order04Relevance.getOrderUuid()).block();
+
+        ScoreMenuItem scoreMenuItemPizzaCheeseExpected = new ScoreMenuItem(menuPizzaCheese.getUuid(), new BigDecimal("14.872457840"));
+        ScoreMenuItem scoreMenuItemJapaneseExpected = new ScoreMenuItem(menuJapanese.getUuid(), new BigDecimal("39.684667263"));
+        ScoreMenuItem scoreMenuItemArabicEsfihasExpected = new ScoreMenuItem(menuArabicEsfihas.getUuid(), new BigDecimal("26.269998228"));
+        ScoreMenuItem scoreMenuItemArabicKibeExpected = new ScoreMenuItem(menuArabicKibe.getUuid(), new BigDecimal("15.598365377"));
+        ScoreMenuItem scoreMenuItemCokeExpected = new ScoreMenuItem(menuCoke.getUuid(), new BigDecimal("26.352313835"));
+        ScoreMenuItem scoreMenuItemHamburgerExpected = new ScoreMenuItem(menuHamburger.getUuid(), new BigDecimal("65.616732283"));
+        List<ScoreMenuItem> scoreMenuItensListExpected = newArrayList(scoreMenuItemPizzaCheeseExpected, scoreMenuItemJapaneseExpected,
+                scoreMenuItemArabicEsfihasExpected, scoreMenuItemArabicKibeExpected, scoreMenuItemCokeExpected, scoreMenuItemHamburgerExpected);
+        scoreMenuItensListExpected.sort((s1, s2) -> s1.getMenuUuid().compareTo(s2.getMenuUuid()));
+        ScoreMenuItem[] scoreMenuItensExpected = scoreMenuItensListExpected.toArray(new ScoreMenuItem[scoreMenuItensListExpected.size()]);
+
+        ScoreCategory scoreCategoryPizzaExpected = new ScoreCategory(Category.PIZZA, new BigDecimal("14.872457840"));
+        ScoreCategory scoreCategoryJapaneseExpected = new ScoreCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
+        ScoreCategory scoreCategoryArabicExpected = new ScoreCategory(Category.ARABIC, new BigDecimal("42.013048183"));
+        ScoreCategory scoreCategoryHamburgerExpected = new ScoreCategory(Category.HAMBURGER, new BigDecimal("65.616732283"));
+        ScoreCategory scoreCategoryOtherExpected = new ScoreCategory(Category.OTHER, new BigDecimal("26.352313835"));
+        List<ScoreCategory> scoreCategoriesListExpected = newArrayList(scoreCategoryPizzaExpected, scoreCategoryJapaneseExpected,
+                scoreCategoryArabicExpected, scoreCategoryHamburgerExpected, scoreCategoryOtherExpected);
+        scoreCategoriesListExpected.sort((s1, s2) -> s1.getCategory().compareTo(s2.getCategory()));
+        ScoreCategory[] scoreCategoriesExpected = scoreCategoriesListExpected.toArray(new ScoreCategory[scoreCategoriesListExpected.size()]);
 
         orderRelevanceService.calculateScore().block();
 
@@ -170,5 +220,21 @@ public class OrderRelevanceServiceIntegrationTest extends AbstractIntegrationTes
 
         assertThat(scoreMenuItensActual).hasSize(scoreMenuItensExpected.length).contains(scoreMenuItensExpected);
         assertThat(scoreCategoryActual).hasSize(scoreCategoriesExpected.length).contains(scoreCategoriesExpected);
+    }
+
+    @Test
+    public void testCalculateScoreWithoutRelevanceValues() {
+        orderRelevanceRepository.markCanceledByOrderUuid(order01Relevance.getOrderUuid()).block();
+        orderRelevanceRepository.markCanceledByOrderUuid(order02Relevance.getOrderUuid()).block();
+        orderRelevanceRepository.markExpiredByConfirmedByOrderUuid(order03Relevance.getOrderUuid()).block();
+        orderRelevanceRepository.markExpiredByConfirmedByOrderUuid(order04Relevance.getOrderUuid()).block();
+
+        orderRelevanceService.calculateScore().block();
+
+        List<ScoreMenuItem> scoreMenuItensActual = scoreRepository.findAllScoreMenuItem().collectList().block();
+        List<ScoreCategory> scoreCategoryActual = scoreRepository.findAllScoreCategory().collectList().block();
+
+        assertThat(scoreMenuItensActual).isEmpty();
+        assertThat(scoreCategoryActual).isEmpty();
     }
 }
