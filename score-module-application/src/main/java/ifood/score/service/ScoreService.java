@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import static ifood.score.service.score.Type.ABOVE;
-
 @Service
 public class ScoreService {
 
@@ -21,7 +19,7 @@ public class ScoreService {
         this.scoreRepository = scoreRepository;
     }
 
-    public Mono<Score> findFirstScoreMenuItemByScoreAndType(Double score, Type type) {
+    public Mono<ScoreMenuItem> findFirstScoreMenuItemByScoreAndType(Double score, Type type) {
         Mono<Score> findScore = Mono.empty();
         switch (type) {
             case ABOVE:
@@ -32,10 +30,10 @@ public class ScoreService {
                 break;
         }
 
-        return findScore;
+        return findScore.map(sm -> (ScoreMenuItem) sm);
     }
 
-    public Mono<Score> findFirstScoreCategoryByScoreAndType(Double score, Type type) {
+    public Mono<ScoreCategory> findFirstScoreCategoryByScoreAndType(Double score, Type type) {
         Mono<Score> findScore = Mono.empty();
         switch (type) {
             case ABOVE:
@@ -46,6 +44,6 @@ public class ScoreService {
                 break;
         }
 
-        return findScore;
+        return findScore.map(sm -> (ScoreCategory) sm);
     }
 }

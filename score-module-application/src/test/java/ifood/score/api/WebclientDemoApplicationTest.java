@@ -48,6 +48,11 @@ public class WebclientDemoApplicationTest extends AbstractIntegrationTest {
     @Autowired
     private WebTestClient webTestClient;
 
+    private ScoreMenuItem scoreMenuItemPizzaCheeseExpected;
+    private ScoreMenuItem scoreMenuItemCokeExpected;
+    private ScoreCategory scoreCategoryJapaneseExpected;
+    private ScoreCategory scoreCategoryVeganExpected;
+
     private Order order02;
 
     @Before
@@ -169,14 +174,14 @@ public class WebclientDemoApplicationTest extends AbstractIntegrationTest {
                 Lists.newArrayList(relevanceCategoryPizzaOrder04));
         orderRelevanceRepository.save(order04Relevance).block();
 
-        ScoreMenuItem scoreMenuItemPizzaCheeseExpected = new ScoreMenuItem(menuPizzaCheese.getUuid(), new BigDecimal("15.306098331"));
+        scoreMenuItemPizzaCheeseExpected = new ScoreMenuItem(menuPizzaCheese.getUuid(), new BigDecimal("15.306098331"));
         ScoreMenuItem scoreMenuItemJapaneseExpected = new ScoreMenuItem(menuJapanese.getUuid(), new BigDecimal("39.684667263"));
         ScoreMenuItem scoreMenuItemArabicEsfihasExpected = new ScoreMenuItem(menuArabicEsfihas.getUuid(), new BigDecimal("23.560719817"));
         ScoreMenuItem scoreMenuItemArabicKibeExpected = new ScoreMenuItem(menuArabicKibe.getUuid(), new BigDecimal("15.598365377"));
         ScoreMenuItem scoreMenuItemPizzaPortugueseExpected = new ScoreMenuItem(menuPizzaPortuguese.getUuid(), new BigDecimal("58.973031701"));
         ScoreMenuItem scoreMenuItemVeganExpected = new ScoreMenuItem(menuVegan.getUuid(), new BigDecimal("18.287923899"));
         ScoreMenuItem scoreMenuItemPizzaPepperoniExpected = new ScoreMenuItem(menuPizzaPepperoni.getUuid(), new BigDecimal("16.878989451"));
-        ScoreMenuItem scoreMenuItemCokeExpected = new ScoreMenuItem(menuCoke.getUuid(), new BigDecimal("26.352313835"));
+        scoreMenuItemCokeExpected = new ScoreMenuItem(menuCoke.getUuid(), new BigDecimal("26.352313835"));
         ScoreMenuItem scoreMenuItemHamburgerExpected = new ScoreMenuItem(menuHamburger.getUuid(), new BigDecimal("65.616732283"));
         List<ScoreMenuItem> scoreMenuItensListExpected = Lists.newArrayList(scoreMenuItemPizzaCheeseExpected, scoreMenuItemJapaneseExpected, scoreMenuItemArabicEsfihasExpected,
                 scoreMenuItemArabicKibeExpected, scoreMenuItemPizzaPortugueseExpected, scoreMenuItemVeganExpected, scoreMenuItemPizzaPepperoniExpected,
@@ -184,8 +189,8 @@ public class WebclientDemoApplicationTest extends AbstractIntegrationTest {
         scoreMenuItensListExpected.forEach(s-> scoreRepository.saveScoreMenuItem(s).block());
 
         ScoreCategory scoreCategoryPizzaExpected = new ScoreCategory(Category.PIZZA, new BigDecimal("55.169808731"));
-        ScoreCategory scoreCategoryVeganExpected = new ScoreCategory(Category.VEGAN, new BigDecimal("18.287923899"));
-        ScoreCategory scoreCategoryJapaneseExpected = new ScoreCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
+        scoreCategoryVeganExpected = new ScoreCategory(Category.VEGAN, new BigDecimal("18.287923899"));
+        scoreCategoryJapaneseExpected = new ScoreCategory(Category.JAPANESE, new BigDecimal("39.684667263"));
         ScoreCategory scoreCategoryArabicExpected = new ScoreCategory(Category.ARABIC, new BigDecimal("31.432244795"));
         ScoreCategory scoreCategoryHamburgerExpected = new ScoreCategory(Category.HAMBURGER, new BigDecimal("65.616732283"));
         ScoreCategory scoreCategoryOtherExpected = new ScoreCategory(Category.OTHER, new BigDecimal("26.352313835"));
@@ -220,5 +225,49 @@ public class WebclientDemoApplicationTest extends AbstractIntegrationTest {
                 .exchange()
                 .expectStatus().isOk().expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .expectBody(OrderRelevance.class);
+    }
+
+    @Test
+    public void testGetAboveScoreMenuItemByValueScore() {
+        webTestClient.get().uri(format("/menu-item/score/%s/above", "15.30"))
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .exchange()
+                .expectStatus().isOk().expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .expectBody()
+                .jsonPath("menuUuid").isEqualTo(scoreMenuItemPizzaCheeseExpected.getMenuUuid().toString())
+                .jsonPath("score").isEqualTo(scoreMenuItemPizzaCheeseExpected.getScore().toString());
+    }
+
+    @Test
+    public void testGetBelowScoreMenuItemByValueScore() {
+        webTestClient.get().uri(format("/menu-item/score/%s/below", "39.68"))
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .exchange()
+                .expectStatus().isOk().expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .expectBody()
+                .jsonPath("menuUuid").isEqualTo(scoreMenuItemCokeExpected.getMenuUuid().toString())
+                .jsonPath("score").isEqualTo(scoreMenuItemCokeExpected.getScore().toString());
+    }
+
+    @Test
+    public void testGetAboveScoreCategoryByValueScore() {
+        webTestClient.get().uri(format("/category/score/%s/above", "39.68"))
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .exchange()
+                .expectStatus().isOk().expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .expectBody()
+                .jsonPath("category").isEqualTo(scoreCategoryJapaneseExpected.getCategory().toString())
+                .jsonPath("score").isEqualTo(scoreCategoryJapaneseExpected.getScore().toString());
+    }
+
+    @Test
+    public void testGetBelowScoreCategoryByValueScore() {
+        webTestClient.get().uri(format("/category/score/%s/below", "22.28"))
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .exchange()
+                .expectStatus().isOk().expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .expectBody()
+                .jsonPath("category").isEqualTo(scoreCategoryVeganExpected.getCategory().toString())
+                .jsonPath("score").isEqualTo(scoreCategoryVeganExpected.getScore().toString());
     }
 }

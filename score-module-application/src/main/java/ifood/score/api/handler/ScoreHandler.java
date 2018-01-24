@@ -1,6 +1,8 @@
 package ifood.score.api.handler;
 
 import ifood.score.domain.model.Score;
+import ifood.score.domain.model.ScoreCategory;
+import ifood.score.domain.model.ScoreMenuItem;
 import ifood.score.service.ScoreService;
 import ifood.score.service.score.Type;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +36,7 @@ public class ScoreHandler {
                     .body(Mono.just(String.format("Path parâmetro value inválido [%s].", value)), String.class);
         }
 
-        return ServerResponse.ok().contentType(APPLICATION_JSON).body(scoreService.findFirstScoreMenuItemByScoreAndType(scoreAbove, Type.ABOVE), Score.class);
+        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreMenuItemByScoreAndType(scoreAbove, Type.ABOVE), ScoreMenuItem.class);
     }
 
     public Mono<ServerResponse> menuItemBelow(ServerRequest request) {
@@ -45,7 +47,7 @@ public class ScoreHandler {
                     .body(Mono.just(String.format("Path parâmetro value inválido [%s].", value)), String.class);
         }
 
-        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreMenuItemByScoreAndType(scoreBelow, Type.BELOW), Score.class);
+        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreMenuItemByScoreAndType(scoreBelow, Type.BELOW), ScoreMenuItem.class);
     }
 
     public Mono<ServerResponse> categoryAbove(ServerRequest request) {
@@ -56,7 +58,7 @@ public class ScoreHandler {
                     .body(Mono.just(String.format("Path parâmetro value inválido [%s].", value)), String.class);
         }
 
-        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreCategoryByScoreAndType(scoreAbove, Type.ABOVE), Score.class);
+        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreCategoryByScoreAndType(scoreAbove, Type.ABOVE), ScoreCategory.class);
     }
 
     public Mono<ServerResponse> categoryBelow(ServerRequest request) {
@@ -67,7 +69,7 @@ public class ScoreHandler {
                     .body(Mono.just(String.format("Path parâmetro value inválido [%s].", value)), String.class);
         }
 
-        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreCategoryByScoreAndType(scoreBelow, Type.BELOW), Score.class);
+        return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreCategoryByScoreAndType(scoreBelow, Type.BELOW), ScoreCategory.class);
     }
 
     protected Double extractScoreParam(String value) {

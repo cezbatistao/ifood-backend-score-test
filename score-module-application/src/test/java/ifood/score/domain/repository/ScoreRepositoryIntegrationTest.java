@@ -36,8 +36,8 @@ public class ScoreRepositoryIntegrationTest extends AbstractIntegrationTest {
     private ScoreMenuItem scoreMenuItemPizzaCheeseExpected;
     private ScoreMenuItem scoreMenuItemArabicKibeExpected;
     private ScoreMenuItem scoreMenuItemCokeExpected;
-    ScoreCategory scoreCategoryJapaneseExpected;
-    ScoreCategory scoreCategoryVeganExpected;
+    private ScoreCategory scoreCategoryJapaneseExpected;
+    private ScoreCategory scoreCategoryVeganExpected;
 
     @Before
     public void setup() {
