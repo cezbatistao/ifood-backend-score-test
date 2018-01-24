@@ -3,6 +3,7 @@ package ifood.score.service;
 import com.google.common.base.VerifyException;
 import ifood.score.domain.model.*;
 import ifood.score.domain.repository.OrderRelevanceRepository;
+import ifood.score.domain.repository.ScoreRepository;
 import ifood.score.infrastructure.service.order.Item;
 import ifood.score.infrastructure.service.order.Order;
 import ifood.score.menu.Category;
@@ -57,9 +58,12 @@ public class OrderRelevanceServiceTest {
     @Mock
     private OrderRelevanceRepository orderRelevanceRepository;
 
+    @Mock
+    private ScoreRepository scoreRepository;
+
     @Before
     public void setup() {
-        orderRelevanceService = new OrderRelevanceService(orderRelevanceRepository);
+        orderRelevanceService = new OrderRelevanceService(orderRelevanceRepository, scoreRepository);
 
         menuPizzaCheese = generateTestMenu(Category.PIZZA, new BigDecimal("20"));
         menuPizzaPepperoni = generateTestMenu(Category.PIZZA, new BigDecimal("23"));
@@ -128,7 +132,7 @@ public class OrderRelevanceServiceTest {
 
         List<ScoreCategory> scoreCategoriesExpected = createDummyScoreCategories();
 
-        Account accountActual = orderRelevanceService.calculateScore(orderRelevanceOrder01, orderRelevanceOrder02);
+        Account accountActual = orderRelevanceService.calculateScore(newArrayList(orderRelevanceOrder01, orderRelevanceOrder02));
         List<ScoreMenuItem> scoreMenuItemsActual = accountActual.getScoreMenuItems();
         scoreMenuItemsActual.sort((s1, s2) -> s1.getMenuUuid().toString().compareTo(s2.getMenuUuid().toString()));
         List<ScoreCategory> scoreCategoriesActual = accountActual.getScoreCategories();

@@ -1,5 +1,6 @@
 package ifood.score.domain.repository;
 
+import com.mongodb.BasicDBObject;
 import ifood.score.domain.model.OrderRelevance;
 import ifood.score.domain.model.RelevanceCategory;
 import ifood.score.domain.model.RelevanceMenuItem;
@@ -7,8 +8,12 @@ import ifood.score.domain.repository.entity.OrderRelevanceMongo;
 import ifood.score.domain.repository.entity.RelevanceCategoryMongo;
 import ifood.score.domain.repository.entity.RelevanceMenuItemMongo;
 import ifood.score.domain.repository.entity.StatusOrder;
+import ifood.score.menu.Category;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -64,6 +69,35 @@ public class OrderRelevanceRepository {
                 .map(u ->
                     u.getMatchedCount() > 0
                 );
+    }
+
+    public Mono<Long> countByStatusActive() {
+        return operations.count(query(where("status").is(StatusOrder.ACTIVE)), Long.class);
+    }
+
+    public Flux<UUID> getDistinctRelevanceMenuItemUuidByStatusActive() {
+        Query query = query(where("status").is(StatusOrder.ACTIVE));
+        query.fields().include("relevancesMenuItem.menuUuid").exclude("_id");
+
+        return operations
+                .find(query, OrderRelevanceMongo.class)
+                .flatMap(o-> Flux.fromIterable(o.getRelevancesMenuItem().stream().map(RelevanceMenuItemMongo::getMenuUuid).distinct().collect(Collectors.toList())));
+    }
+
+    public Flux<Category> getDistinctRelevanceCategoryUuidByStatusActive() {
+        Query query = query(where("status").is(StatusOrder.ACTIVE));
+        query.fields().include("relevancesCategory.category").exclude("_id");
+        return operations
+                .find(query, OrderRelevanceMongo.class)
+                .flatMap(o-> Flux.fromIterable(o.getRelevancesCategory().stream().map(RelevanceCategoryMongo::getCategory).distinct().collect(Collectors.toList())));
+    }
+
+    public Flux<OrderRelevance> findAllByMenuItemUuidAndStatusActive(UUID menuItemUuid) {
+        return operations.find(query(where("status").is(StatusOrder.ACTIVE).and("relevancesMenuItem.menuUuid").is(menuItemUuid)), OrderRelevanceMongo.class).map(this::mapper);
+    }
+
+    public Flux<OrderRelevance> findallByCategoryAndStatusActive(Category category) {
+        return operations.find(query(where("status").is(StatusOrder.ACTIVE).and("relevancesCategory.category").is(category)), OrderRelevanceMongo.class).map(this::mapper);
     }
 
     private OrderRelevanceMongo mapper(OrderRelevance orderRelevance) {

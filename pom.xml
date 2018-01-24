@@ -15,7 +15,7 @@
 	</modules>
 
 	<properties>
-		<sonar.jacoco.itReportPath>${project.basedir}/../target/jacoco-it.exec</sonar.jacoco.itReportPath>
+		<sonar.exclusions>**/entity/*, **/domain/model/*, **/infrastructure/config/**/*, **/infrastructure/service/order/OrderCheckoutMock.*</sonar.exclusions>
 	</properties>
 
 	<dependencies>
@@ -27,12 +27,12 @@
 		</dependency>
 	</dependencies>
 
-	<!--<profiles>-->
-		<!--<profile>-->
-			<!--<id>sonar-coverage</id>-->
-			<!--<activation>-->
-				<!--<activeByDefault>true</activeByDefault>-->
-			<!--</activation>-->
+	<profiles>
+		<profile>
+			<id>sonar-coverage</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<build>
 				<pluginManagement>
 					<plugins>
@@ -73,6 +73,6 @@
 					</plugin>
 				</plugins>
 			</build>
-		<!--</profile>-->
-	<!--</profiles>-->
+		</profile>
+	</profiles>
 </project>

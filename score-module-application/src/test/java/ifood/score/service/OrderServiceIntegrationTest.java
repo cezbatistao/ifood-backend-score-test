@@ -7,23 +7,18 @@ import ifood.score.domain.repository.OrderRelevanceRepository;
 import ifood.score.domain.repository.OrderRepository;
 import ifood.score.domain.repository.entity.OrderMongo;
 import ifood.score.domain.repository.entity.OrderRelevanceMongo;
-import ifood.score.infrastructure.config.Application;
 import ifood.score.infrastructure.service.order.Item;
 import ifood.score.infrastructure.service.order.Order;
 import ifood.score.menu.Category;
 import ifood.score.menu.Menu;
+import ifood.score.support.AbstractIntegrationTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -37,13 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.util.Arrays.array;
 import static org.assertj.core.util.Lists.newArrayList;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = Application.class)
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-public class OrderServiceIntegrationTest {
+public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private OrderService orderService;
@@ -159,16 +148,16 @@ public class OrderServiceIntegrationTest {
         List<OrderRelevance> orderRelevances = orderRelevanceRepository.findAllByStatusActive().collectList().block();
 
         assertThat(orderRelevances).hasSize(ordersExpected.size());
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order01.getUuid())).findFirst().get().getRelevancesMenuItem())
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order01.getUuid())).findFirst().get().getRelevancesMenuItem())
                 .hasSize(relevanceMenuItemsOrder01Expected.length)
                 .contains(relevanceMenuItemsOrder01Expected);
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order01.getUuid())).findFirst().get().getRelevancesCategory())
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order01.getUuid())).findFirst().get().getRelevancesCategory())
                 .hasSize(relevanceCategoriesOrder01Expected.length)
                 .contains(relevanceCategoriesOrder01Expected);
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesMenuItem())
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesMenuItem())
                 .hasSize(relevanceMenuItemsOrder02Expected.length)
                 .contains(relevanceMenuItemsOrder02Expected);
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesCategory())
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesCategory())
                 .hasSize(relevanceCategoriesOrder02Expected.length)
                 .contains(relevanceCategoriesOrder02Expected);
     }
@@ -200,12 +189,12 @@ public class OrderServiceIntegrationTest {
         assertThat(orderRelevances).hasSize(1);
         assertThat(orderRelevances.get(0).getOrderUuid()).isEqualTo(order02.getUuid());
 
-        assertThat(orderRelevances.stream().anyMatch(o->o.getOrderUuid().equals(order01.getUuid()))).isFalse();
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesMenuItem())
+        assertThat(orderRelevances.stream().anyMatch(o -> o.getOrderUuid().equals(order01.getUuid()))).isFalse();
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesMenuItem())
                 .hasSize(relevanceMenuItemsOrder02Expected.length)
                 .contains(relevanceMenuItemsOrder02Expected)
                 .doesNotContain(relevanceMenuItemsOrder01Expected);
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesCategory())
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order02.getUuid())).findFirst().get().getRelevancesCategory())
                 .hasSize(relevanceCategoriesOrder02Expected.length)
                 .contains(relevanceCategoriesOrder02Expected)
                 .doesNotContain(relevanceCategoriesOrder01Expected);
@@ -255,15 +244,15 @@ public class OrderServiceIntegrationTest {
         assertThat(orderRelevances).hasSize(1);
         assertThat(orderRelevances.get(0).getOrderUuid()).isEqualTo(order03.getUuid());
 
-        assertThat(orderRelevances.stream().anyMatch(o-> o.getOrderUuid().equals(order01.getUuid()) || o.getOrderUuid().equals(order02.getUuid()))).isFalse();
+        assertThat(orderRelevances.stream().anyMatch(o -> o.getOrderUuid().equals(order01.getUuid()) || o.getOrderUuid().equals(order02.getUuid()))).isFalse();
 
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order03.getUuid())).findFirst().get().getRelevancesMenuItem())
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order03.getUuid())).findFirst().get().getRelevancesMenuItem())
                 .hasSize(relevanceMenuItemsOrder03Expected.length)
                 .contains(relevanceMenuItemsOrder03Expected)
                 .doesNotContain(relevanceMenuItemsOrder01Expected)
                 .doesNotContain(relevanceMenuItemsOrder02Expected);
 
-        assertThat(orderRelevances.stream().filter(o->o.getOrderUuid().equals(order03.getUuid())).findFirst().get().getRelevancesCategory())
+        assertThat(orderRelevances.stream().filter(o -> o.getOrderUuid().equals(order03.getUuid())).findFirst().get().getRelevancesCategory())
                 .hasSize(relevanceCategoriesOrder03Expected.length)
                 .contains(relevanceCategoriesOrder03Expected)
                 .doesNotContain(relevanceCategoriesOrder01Expected)
@@ -271,7 +260,7 @@ public class OrderServiceIntegrationTest {
     }
 
     private RelevanceMenuItem[] createDummyRelevanceMenuItensForOrder01(Item itemPizzaCheeseOrder01, Item itemJapaneseOrder01,
-                                                                            Item itemArabicEsfihasOrder01, Item itemArabicKibeOrder01) {
+                                                                        Item itemArabicEsfihasOrder01, Item itemArabicKibeOrder01) {
         RelevanceMenuItem relevanceMenuItemPizzaCheeseOrder01Expected = new RelevanceMenuItem(itemPizzaCheeseOrder01.getMenuUuid(), new BigDecimal("14.872457840"));
         RelevanceMenuItem relevanceMenuItemJapaneseOrder01Expected = new RelevanceMenuItem(itemJapaneseOrder01.getMenuUuid(), new BigDecimal("39.684667263"));
         RelevanceMenuItem relevanceMenuItemArabicEsfihasOrder01Expected = new RelevanceMenuItem(itemArabicEsfihasOrder01.getMenuUuid(), new BigDecimal("26.269998228"));

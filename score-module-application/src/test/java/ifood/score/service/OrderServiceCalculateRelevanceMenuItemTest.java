@@ -1,6 +1,7 @@
 package ifood.score.service;
 
 import ifood.score.domain.repository.OrderRelevanceRepository;
+import ifood.score.domain.repository.ScoreRepository;
 import ifood.score.infrastructure.service.order.Item;
 import ifood.score.menu.Category;
 import ifood.score.menu.Menu;
@@ -32,9 +33,12 @@ public class OrderServiceCalculateRelevanceMenuItemTest {
     @Mock
     private OrderRelevanceRepository orderRelevanceRepository;
 
+    @Mock
+    private ScoreRepository scoreRepository;
+
     @Before
     public void setup() {
-        orderService = new OrderRelevanceService(orderRelevanceRepository);
+        orderService = new OrderRelevanceService(orderRelevanceRepository, scoreRepository);
 
         menuPizzaCheese = generateTestMenu(Category.PIZZA, new BigDecimal("20"));
         menuJapanese = generateTestMenu(Category.JAPANESE, new BigDecimal("8.9"));

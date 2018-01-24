@@ -1,6 +1,7 @@
 package ifood.score.domain.repository.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -10,20 +11,19 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
 @Document(collection = "orderRelevance")
 public class OrderRelevanceMongo {
 
     @Id
-    @NonNull
     private UUID orderUuid;
-
-    @NonNull
     private List<RelevanceMenuItemMongo> relevancesMenuItem;
-
-    @NonNull
     private List<RelevanceCategoryMongo> relevancesCategory;
-
     private StatusOrder status = StatusOrder.ACTIVE;
 
+    public OrderRelevanceMongo(UUID orderUuid, List<RelevanceMenuItemMongo> relevancesMenuItem, List<RelevanceCategoryMongo> relevancesCategory) {
+        this.orderUuid = orderUuid;
+        this.relevancesMenuItem = relevancesMenuItem;
+        this.relevancesCategory = relevancesCategory;
+    }
 }

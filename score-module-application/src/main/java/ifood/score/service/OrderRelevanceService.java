@@ -2,17 +2,21 @@ package ifood.score.service;
 
 import ifood.score.domain.model.*;
 import ifood.score.domain.repository.OrderRelevanceRepository;
+import ifood.score.domain.repository.ScoreRepository;
 import ifood.score.infrastructure.service.order.Item;
 import ifood.score.infrastructure.service.order.Order;
 import ifood.score.menu.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Verify.verify;
@@ -24,10 +28,12 @@ import static java.util.stream.Collectors.groupingBy;
 public class OrderRelevanceService {
 
     private OrderRelevanceRepository orderRelevanceRepository;
+    private ScoreRepository scoreRepository;
 
     @Autowired
-    public OrderRelevanceService(OrderRelevanceRepository orderRelevanceRepository) {
+    public OrderRelevanceService(OrderRelevanceRepository orderRelevanceRepository, ScoreRepository scoreRepository) {
         this.orderRelevanceRepository = orderRelevanceRepository;
+        this.scoreRepository = scoreRepository;
     }
 
     public Mono<OrderRelevance> calculateRelevance(Mono<Order> orderMono) {
@@ -67,10 +73,10 @@ public class OrderRelevanceService {
         return new OrderRelevance(order.getUuid(), relevanceMenuItems, relevanceCategories);
     }
 
-    public Account calculateScore(OrderRelevance... orders) {
-        List<ScoreMenuItem> scoreMenuItems = (List<ScoreMenuItem>) calculateAverageOfRelevance(Arrays.stream(orders)
+    public Account calculateScore(List<OrderRelevance> orderRelevances) {
+        List<ScoreMenuItem> scoreMenuItems = (List<ScoreMenuItem>) calculateAverageOfRelevance(orderRelevances.stream()
                 .flatMap(r -> r.getRelevancesMenuItem().stream()));
-        List<ScoreCategory> scoreCategories = (List<ScoreCategory>) calculateAverageOfRelevance(Arrays.stream(orders)
+        List<ScoreCategory> scoreCategories = (List<ScoreCategory>) calculateAverageOfRelevance(orderRelevances.stream()
                 .flatMap(r -> r.getRelevancesCategory().stream()));
 
         return new Account(scoreMenuItems, scoreCategories);
@@ -106,9 +112,8 @@ public class OrderRelevanceService {
         return BigDecimal.valueOf(Math.sqrt(iq * ip * 10000)).setScale(9, RoundingMode.HALF_UP);
     }
 
-    private List<ScoreMenuItem> calculateScoreMenuItens(OrderRelevance[] orders) {
-        Map<UUID, Double> groupByMenuItem = Arrays.stream(orders)
-                .flatMap(r -> r.getRelevancesMenuItem().stream())
+    private List<ScoreMenuItem> calculateScoreMenuItens(List<RelevanceMenuItem> relevancesMenuItem) {
+        Map<UUID, Double> groupByMenuItem = relevancesMenuItem.stream()
                 .collect(groupingBy(RelevanceMenuItem::getMenuUuid, averagingDouble(r -> r.getRelevance().doubleValue())));
 
         List<ScoreMenuItem> scoreMenuItems = newArrayList();
@@ -119,9 +124,8 @@ public class OrderRelevanceService {
         return scoreMenuItems;
     }
 
-    private List<ScoreCategory> calculateScoreCategories(OrderRelevance[] orders) {
-        Map<Category, Double> groupByCategory = Arrays.stream(orders)
-                .flatMap(r -> r.getRelevancesCategory().stream())
+    private List<ScoreCategory> calculateScoreCategories(List<RelevanceCategory> relevanceCategories) {
+        Map<Category, Double> groupByCategory = relevanceCategories.stream()
                 .collect(groupingBy(RelevanceCategory::getCategory, averagingDouble(r -> r.getRelevance().doubleValue())));
 
         List<ScoreCategory> scoreCategories = newArrayList();
@@ -143,5 +147,32 @@ public class OrderRelevanceService {
         });
 
         return scores;
+    }
+
+    public Mono<Void> calculateScore() {
+        return orderRelevanceRepository
+                .findAllByStatusActive()
+                .collectList()
+                .map(this::calculateScore)
+                .flatMap(account-> scoreRepository.saveAllScoreMenuItem(account.getScoreMenuItems())
+                        .then(scoreRepository.saveAllCategory(account.getScoreCategories()).then()));
+//        return orderRelevanceRepository.getDistinctRelevanceMenuItemUuidByStatusActive()
+//                .flatMap(u -> orderRelevanceRepository.findAllByMenuItemUuidAndStatusActive(u))
+//                .collectList()
+//                .flatMapMany(orderRelevances -> {
+//                    return Flux.fromIterable(orderRelevances.stream().map(OrderRelevance::getRelevancesMenuItem).distinct().flatMap(List::stream).collect(Collectors.toList()));
+//                })
+//                .collectList()
+//                .flatMapMany(x-> {
+//                    return Flux.just(this.calculateScoreMenuItens(x));
+//                })
+//                .flatMap(scoreMenuItems -> scoreRepository.saveAllScoreMenuItem(scoreMenuItems))
+//                .thenMany(orderRelevanceRepository.getDistinctRelevanceCategoryUuidByStatusActive())
+//                .flatMap(c-> orderRelevanceRepository.findallByCategoryAndStatusActive(c))
+//                .collectList()
+//                .flatMapMany(orderRelevances -> Flux.fromIterable(orderRelevances.stream().map(OrderRelevance::getRelevancesCategory).collect(Collectors.toList())))
+//                .map(this::calculateScoreCategories)
+//                .flatMap(scoreCategories -> scoreRepository.saveAllCategory(scoreCategories))
+//                .then();
     }
 }
