@@ -19,8 +19,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 @Component
 public class ScoreHandler {
 
-    static final String PARAMETER_VALUE = "value";
-    static final String MESSAGE_ERROR_VALUE_PARAM_INVALID = "Path parâmetro value inválido [%s].";
+    private static final String PARAMETER_VALUE = "value";
+    private static final String MESSAGE_ERROR_VALUE_PARAM_INVALID = "Path parâmetro value inválido [%s].";
 
     private ScoreService scoreService;
 
@@ -41,33 +41,33 @@ public class ScoreHandler {
     }
 
     public Mono<ServerResponse> menuItemBelow(ServerRequest request) {
-        String value = request.pathVariable("value");
+        String value = request.pathVariable(PARAMETER_VALUE);
         Double scoreBelow = extractScoreParam(value);
         if (scoreBelow == null) {
             return ServerResponse.badRequest()
-                    .body(Mono.just(String.format("Path parâmetro value inválido [%s].", value)), String.class);
+                    .body(Mono.just(String.format(MESSAGE_ERROR_VALUE_PARAM_INVALID, value)), String.class);
         }
 
         return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreMenuItemByScoreAndType(scoreBelow, Type.BELOW), ScoreMenuItem.class);
     }
 
     public Mono<ServerResponse> categoryAbove(ServerRequest request) {
-        String value = request.pathVariable("value");
+        String value = request.pathVariable(PARAMETER_VALUE);
         Double scoreAbove = extractScoreParam(value);
         if (scoreAbove == null) {
             return ServerResponse.badRequest()
-                    .body(Mono.just(String.format("Path parâmetro value inválido [%s].", value)), String.class);
+                    .body(Mono.just(String.format(MESSAGE_ERROR_VALUE_PARAM_INVALID, value)), String.class);
         }
 
         return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreCategoryByScoreAndType(scoreAbove, Type.ABOVE), ScoreCategory.class);
     }
 
     public Mono<ServerResponse> categoryBelow(ServerRequest request) {
-        String value = request.pathVariable("value");
+        String value = request.pathVariable(PARAMETER_VALUE);
         Double scoreBelow = extractScoreParam(value);
         if (scoreBelow == null) {
             return ServerResponse.badRequest()
-                    .body(Mono.just(String.format("Path parâmetro value inválido [%s].", value)), String.class);
+                    .body(Mono.just(String.format(MESSAGE_ERROR_VALUE_PARAM_INVALID, value)), String.class);
         }
 
         return ServerResponse.ok().contentType(APPLICATION_JSON_UTF8).body(scoreService.findFirstScoreCategoryByScoreAndType(scoreBelow, Type.BELOW), ScoreCategory.class);

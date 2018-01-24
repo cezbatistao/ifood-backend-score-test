@@ -27,6 +27,8 @@ import static org.springframework.data.mongodb.core.query.Update.update;
 @Repository
 public class OrderRelevanceRepository {
 
+    private static final String DOCUMENT_COLUMN_STATUS = "status";
+
     private ReactiveMongoOperations operations;
 
     @Autowired
@@ -44,12 +46,12 @@ public class OrderRelevanceRepository {
     }
 
     public Flux<OrderRelevance> findAllByStatusActive() {
-        return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderRelevanceMongo.class).map(this::mapper);
+        return operations.find(query(where(DOCUMENT_COLUMN_STATUS).is(StatusOrder.ACTIVE)), OrderRelevanceMongo.class).map(this::mapper);
     }
 
     public Mono<Void> markCanceledByOrderUuid(UUID orderUuid) {
         return operations
-                .updateFirst(query(where("_id").is(orderUuid)), update("status", StatusOrder.CANCELED), OrderRelevanceMongo.class)
+                .updateFirst(query(where("_id").is(orderUuid)), update(DOCUMENT_COLUMN_STATUS, StatusOrder.CANCELED), OrderRelevanceMongo.class)
                 .map(u -> {
                     if (u.getMatchedCount() == 0) {
                         Mono.error(new IllegalArgumentException(format("Order with UUID [%s] don't exists.", orderUuid)));
@@ -62,7 +64,7 @@ public class OrderRelevanceRepository {
 
     public Mono<Boolean> markExpiredByConfirmedByOrderUuid(UUID orderUuid) {
         return operations
-                .updateMulti(query(where("_id").is(orderUuid)), update("status", StatusOrder.EXPIRED), OrderRelevanceMongo.class)
+                .updateMulti(query(where("_id").is(orderUuid)), update(DOCUMENT_COLUMN_STATUS, StatusOrder.EXPIRED), OrderRelevanceMongo.class)
                 .map(u ->
                         u.getMatchedCount() > 0
                 );

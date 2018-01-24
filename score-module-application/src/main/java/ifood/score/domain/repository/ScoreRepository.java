@@ -28,6 +28,9 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 @Repository
 public class ScoreRepository {
 
+    private static final String DOCUMENT_COLUMN_SCORE = "score";
+    private static final String DOCUMENT_COLUMN_STATUS = "status";
+
     private ReactiveMongoOperations operations;
 
     @Autowired
@@ -44,9 +47,9 @@ public class ScoreRepository {
     }
 
     public Flux<ScoreMenuItem> aggregateAvgMenuItemUuidByStatusActive() {
-        MatchOperation match = match(where("status").is(StatusOrder.ACTIVE));
+        MatchOperation match = match(where(DOCUMENT_COLUMN_STATUS).is(StatusOrder.ACTIVE));
         UnwindOperation unwindRelevanceMenuItem = unwind("relevancesMenuItem");
-        GroupOperation avgRelevanceMenuItem = group("relevancesMenuItem.menuUuid").avg("relevancesMenuItem.relevance").as("score");
+        GroupOperation avgRelevanceMenuItem = group("relevancesMenuItem.menuUuid").avg("relevancesMenuItem.relevance").as(DOCUMENT_COLUMN_SCORE);
 
         return operations
                 .aggregate(
@@ -59,9 +62,9 @@ public class ScoreRepository {
     }
 
     public Flux<ScoreCategory> aggregateAvgCategoryUuidByStatusActive() {
-        MatchOperation match = match(where("status").is(StatusOrder.ACTIVE));
+        MatchOperation match = match(where(DOCUMENT_COLUMN_STATUS).is(StatusOrder.ACTIVE));
         UnwindOperation unwindRelevanceCategory = unwind("relevancesCategory");
-        GroupOperation avgRelevanceCategory = group("relevancesCategory.category").avg("relevancesCategory.relevance").as("score");
+        GroupOperation avgRelevanceCategory = group("relevancesCategory.category").avg("relevancesCategory.relevance").as(DOCUMENT_COLUMN_SCORE);
 
         return operations
                 .aggregate(
@@ -82,26 +85,26 @@ public class ScoreRepository {
     }
 
     public Mono<Score> findFirstScoreMenuItemAboveByScore(Double score) {
-        Query query = query(where("score").gt(score));
-        query.with(new Sort(Sort.Direction.ASC, "score"));
+        Query query = query(where(DOCUMENT_COLUMN_SCORE).gt(score));
+        query.with(new Sort(Sort.Direction.ASC, DOCUMENT_COLUMN_SCORE));
         return operations.findOne(query, ScoreMenuItemMongo.class).map(this::mapperMenuItem);
     }
 
     public Mono<Score> findFirstScoreMenuItemBelowByScore(Double score) {
-        Query query = query(where("score").lt(score));
-        query.with(new Sort(Sort.Direction.DESC, "score"));
+        Query query = query(where(DOCUMENT_COLUMN_SCORE).lt(score));
+        query.with(new Sort(Sort.Direction.DESC, DOCUMENT_COLUMN_SCORE));
         return operations.findOne(query, ScoreMenuItemMongo.class).map(this::mapperMenuItem);
     }
 
     public Mono<Score> findFirstScoreCategoryAboveByScore(Double score) {
-        Query query = query(where("score").gt(score));
-        query.with(new Sort(Sort.Direction.ASC, "score"));
+        Query query = query(where(DOCUMENT_COLUMN_SCORE).gt(score));
+        query.with(new Sort(Sort.Direction.ASC, DOCUMENT_COLUMN_SCORE));
         return operations.findOne(query, ScoreCategoryMongo.class).map(this::mapperCategory);
     }
 
     public Mono<Score> findFirstScoreCategoryBelowByScore(Double score) {
-        Query query = query(where("score").lt(score));
-        query.with(new Sort(Sort.Direction.DESC, "score"));
+        Query query = query(where(DOCUMENT_COLUMN_SCORE).lt(score));
+        query.with(new Sort(Sort.Direction.DESC, DOCUMENT_COLUMN_SCORE));
         return operations.findOne(query, ScoreCategoryMongo.class).map(this::mapperCategory);
     }
 

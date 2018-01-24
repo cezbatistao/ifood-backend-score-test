@@ -27,6 +27,8 @@ import static org.springframework.data.mongodb.core.query.Update.update;
 @Repository
 public class OrderRepository {
 
+    private static final String DOCUMENT_COLUMN_STATUS = "status";
+
     private ReactiveMongoOperations operations;
 
     @Autowired
@@ -44,12 +46,12 @@ public class OrderRepository {
     }
 
     public Flux<Order> findAllByStatusActive() {
-        return operations.find(query(where("status").is(StatusOrder.ACTIVE)), OrderMongo.class).map(this::mapper);
+        return operations.find(query(where(DOCUMENT_COLUMN_STATUS).is(StatusOrder.ACTIVE)), OrderMongo.class).map(this::mapper);
     }
 
     public Mono<Void> markCanceledByOrderUuid(UUID orderUuid) {
         return operations
-                .updateFirst(query(where("_id").is(orderUuid)), update("status", StatusOrder.CANCELED), OrderMongo.class)
+                .updateFirst(query(where("_id").is(orderUuid)), update(DOCUMENT_COLUMN_STATUS, StatusOrder.CANCELED), OrderMongo.class)
                 .map(u -> {
                     if (u.getMatchedCount() == 0) {
                         Mono.error(new IllegalArgumentException(format("Order with UUID [%s] don't exists.", orderUuid)));
@@ -61,7 +63,7 @@ public class OrderRepository {
     }
 
     public Flux<UUID> findOrderUuidByConfirmedAtLessThanEqualAndStatus(Date confirmedAt, StatusOrder statusOrder) {
-        Query query = query(where("confirmedAt").lte(confirmedAt).and("status").is(statusOrder));
+        Query query = query(where("confirmedAt").lte(confirmedAt).and(DOCUMENT_COLUMN_STATUS).is(statusOrder));
         query.fields().include("_id");
         return operations.find(query, OrderMongo.class).map(OrderMongo::getUuid);
     }
@@ -69,8 +71,8 @@ public class OrderRepository {
     public Mono<Void> markExpiredByConfirmedAtLessThanEqual(Date confirmedAt) {
         return operations
                 .updateMulti(
-                        query(where("confirmedAt").lte(confirmedAt).and("status").is(StatusOrder.ACTIVE)),
-                        update("status", StatusOrder.EXPIRED),
+                        query(where("confirmedAt").lte(confirmedAt).and(DOCUMENT_COLUMN_STATUS).is(StatusOrder.ACTIVE)),
+                        update(DOCUMENT_COLUMN_STATUS, StatusOrder.EXPIRED),
                         OrderMongo.class)
                 .then();
     }
