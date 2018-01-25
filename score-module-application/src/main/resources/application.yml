@@ -1,26 +1,24 @@
 spring:
   profiles:
     active: dev
-  activemq:
-      broker-url: vm://embedded?broker.persistent=false,useShutdownHook=false
-      in-memory: true
-      non-blocking-redelivery: true
-      packages:
-        trust-all: false
-        trusted: ifood.score
-      pool:
-        block-if-full: true
-        block-if-full-timeout: -1
-        create-connection-on-startup: true
-        enabled: false
-        expiry-timeout: 0
-        idle-timeout: 30000
-        max-connections: 1
-        maximum-active-session-per-connection: 500
-        reconnect-on-exception: true
-        time-between-expiration-check: -1
-        use-anonymous-producers: true
-
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      group-id: boot
+#  cloud:
+#    stream:
+#      binder:
+#        brokers:
+#        defaultBrokerPort:
+#        zkNodes:
+#        defaultZkPort:
+#  cloud:
+#    stream:
+#      bindings:
+#        output:
+#          destination: transformed
+#        input:
+#          destination: testtock
 
 #cron:
 #  calculate:

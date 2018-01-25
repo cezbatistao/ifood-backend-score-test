@@ -30,7 +30,7 @@ public class OrderConsumerListenerTest {
         Order orderMock = mock(Order.class);
         when(orderService.checkout(orderMock)).thenReturn(Mono.empty());
 
-        orderConsumerListener.receiveOrderToCheckout(orderMock);
+//        orderConsumerListener.receiveOrderToCheckout(orderMock);
 
         verify(orderService, times(1)).checkout(orderMock);
     }
@@ -40,7 +40,7 @@ public class OrderConsumerListenerTest {
         UUID orderUuid = UUID.randomUUID();
         when(orderService.cancel(orderUuid)).thenReturn(Mono.empty());
 
-        orderConsumerListener.receiveCancelOrder(orderUuid);
+//        orderConsumerListener.receiveCancelOrder(orderUuid);
 
         verify(orderService, times(1)).cancel(orderUuid);
     }

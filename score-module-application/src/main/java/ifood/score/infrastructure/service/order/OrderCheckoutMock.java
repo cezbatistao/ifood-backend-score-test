@@ -2,8 +2,9 @@ package ifood.score.infrastructure.service.order;
 
 import ifood.score.mock.generator.order.OrderPicker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.context.annotation.Profile;
-import org.springframework.jms.core.JmsTemplate;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +16,14 @@ import static ifood.score.mock.generator.RandomishPicker._int;
 
 @Service
 @Profile("!test")
+@EnableBinding(OrderProcessor.class)
 public class OrderCheckoutMock {
 
 	static final String CHECKOUT_ORDER_QUEUE = "checkout-order";
 	static final String CANCEL_ORDER_QUEUE = "cancel-order";
 
-	@Autowired
-	JmsTemplate jmsTemplate;
+    @Autowired
+    private OrderProcessor processor;
 
 	private ConcurrentLinkedQueue<UUID> cancellantionQueue = new ConcurrentLinkedQueue<>();
 
@@ -34,7 +36,7 @@ public class OrderCheckoutMock {
 			if (_int(0, 20) % 20 == 0) {
 				cancellantionQueue.add(order.getUuid());
 			}
-			jmsTemplate.convertAndSend(CHECKOUT_ORDER_QUEUE, order);
+			processor.messageChannelCheckoutOrder().send(MessageBuilder.withPayload(order).build());
 		});
 	}
 
@@ -43,7 +45,7 @@ public class OrderCheckoutMock {
 		IntStream.range(1, _int(2, cancellantionQueue.size() > 2 ? cancellantionQueue.size() : 2)).forEach(t -> {
 			UUID orderUuid = cancellantionQueue.poll();
 			if (orderUuid != null) {
-				jmsTemplate.convertAndSend(CANCEL_ORDER_QUEUE, orderUuid);
+				processor.messageChannelCancelOrder().send(MessageBuilder.withPayload(orderUuid).build());
 			}
 		});
 	}
